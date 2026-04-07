@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/fee_estimate.dart' show FeeEstimationException;
+import '../providers/balance_provider.dart';
 import '../providers/portfolio_provider.dart'
-    show ethFeeProvider, kEthTransferGasLimit, kErc20TransferGasLimit;
+    show ethFeeProvider, kEthTransferGasLimit;
 import '../providers/wallet_provider.dart';
 import 'home_screen.dart' show AssetId, AssetInfo;
 
@@ -61,6 +62,19 @@ class _SendScreenState extends ConsumerState<SendScreen> {
         case AssetId.eth:
           hash = await service.sendEthereum(to, amount);
         case AssetId.vavel:
+          final balances = ref.read(balanceProvider).valueOrNull;
+          final vavelBal = balances?['vavel']?.toDecimal() ?? 0.0;
+          final ethBal = balances?['eth']?.toDecimal() ?? 0.0;
+          if (amount > vavelBal) {
+            setState(() => _error =
+                'Insufficient VAVEL balance (available: ${vavelBal.toStringAsFixed(4)} VAVEL).');
+            return;
+          }
+          if (ethBal == 0) {
+            setState(() =>
+                _error = 'ETH balance required to pay the \$0.03 gas fee.');
+            return;
+          }
           hash = await service.sendVavel(to, amount);
         case AssetId.btc:
           if (mounted) {
@@ -129,9 +143,12 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                     const TextInputType.numberWithOptions(decimal: true),
               ),
 
-              if (id == AssetId.eth || id == AssetId.vavel) ...[
+              if (id == AssetId.eth) ...[
                 const SizedBox(height: 8),
                 _FeeEstimateWidget(assetId: id),
+              ] else if (id == AssetId.vavel) ...[
+                const SizedBox(height: 8),
+                const _VavelFeeSection(),
               ],
               const SizedBox(height: 32),
 
@@ -246,7 +263,50 @@ class _WalletTextField extends StatelessWidget {
   }
 }
 
-/// Shows the estimated network fee for ETH / VAVEL transactions.
+/// Fixed $0.03 USD fee card shown for all VAVEL transfers.
+class _VavelFeeSection extends StatelessWidget {
+  const _VavelFeeSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A2A3E),
+        borderRadius: BorderRadius.circular(10),
+        border:
+            Border.all(color: const Color(0xFF2979FF).withValues(alpha: 0.3)),
+      ),
+      child: const Row(
+        children: [
+          Icon(Icons.local_gas_station_outlined, size: 14, color: Colors.grey),
+          SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Network fee: \$0.03',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  'Fixed gas fee · deducted from your ETH balance',
+                  style: TextStyle(color: Colors.grey, fontSize: 11),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Shows the estimated network fee for ETH transactions.
 ///
 /// Three states:
 ///   • Loading — small spinner + "Estimating fee…"
@@ -260,9 +320,7 @@ class _FeeEstimateWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final gasLimit =
-        assetId == AssetId.eth ? kEthTransferGasLimit : kErc20TransferGasLimit;
-    final feeAsync = ref.watch(ethFeeProvider(gasLimit));
+    final feeAsync = ref.watch(ethFeeProvider(kEthTransferGasLimit));
 
     return feeAsync.when(
       loading: () => const Row(

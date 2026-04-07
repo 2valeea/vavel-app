@@ -81,7 +81,7 @@ class SettingsScreen extends ConsumerWidget {
 
           // ── RPC tips ──────────────────────────────────────────────────
           const SizedBox(height: 24),
-          _SectionHeader('API Keys (RPC)'),
+          const _SectionHeader('API Keys (RPC)'),
           const SizedBox(height: 8),
           _RpcKeyTip(
             chain: 'Ethereum',
