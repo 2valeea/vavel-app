@@ -2,19 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'providers/wallet_provider.dart';
+import 'providers/locale_provider.dart';
 import 'screens/setup_screen.dart';
 import 'screens/pin_auth_screen.dart';
 import 'screens/home_screen.dart';
 
 void main() => runApp(const ProviderScope(child: VavelApp()));
 
-class VavelApp extends StatelessWidget {
+class VavelApp extends ConsumerWidget {
   const VavelApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final locale = ref.watch(localeProvider);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      locale: locale,
+      supportedLocales: const [Locale('en'), Locale('ru')],
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: const Color(0xFF0D1B2E),
         colorScheme: const ColorScheme.dark(

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:http/http.dart' as http;
 import '../config.dart';
+import '../models/network.dart' show AppNetwork;
 import '../solana/solana_adapter.dart';
 import '../ton/ton_adapter.dart';
 import '../http/safe_http_client.dart' show SafeHttpClient;
@@ -10,57 +11,66 @@ import '../bitcoin/bitcoin_adapter.dart' show BitcoinProvider;
 import '../secure_storage/keychain_store.dart' show SeedStore;
 import 'wallet_service.dart';
 
-/// Creates the production [WalletService].
-///
-/// RPC endpoints are injected at compile time via `--dart-define`.
-/// See [RpcConfig] for supported providers and usage examples.
-///
-/// Validation rules (crash-fast in debug, warn in release):
-///   • All URLs must be valid `https://` URIs.
-///   • Using the unauthenticated Solana public endpoint prints a warning
-///     in debug mode — it is rate-limited and unsuitable for production.
-WalletService createWalletService(SeedStore seedStore) {
-  _validateConfig();
+// ── Testnet public endpoints (no API key required) ─────────────────────────
+const _solTestnet = 'https://api.devnet.solana.com';
+const _ethTestnet = 'https://rpc.sepolia.org';
+const _tonTestnet = 'https://testnet.toncenter.com/api/v2/jsonRPC';
+const _btcTestnet = 'https://blockstream.info/testnet/api';
 
-  // Solana — Helius / Alchemy / QuickNode embed the key in the URL:
-  //   Helius    : SOLANA_RPC_PRIMARY=https://mainnet.helius-rpc.com/?api-key=YOUR_KEY
-  //   Alchemy   : SOLANA_RPC_PRIMARY=https://solana-mainnet.g.alchemy.com/v2/YOUR_KEY
-  //   QuickNode : SOLANA_RPC_PRIMARY=https://your-node.solana-mainnet.quiknode.pro/TOKEN/
-  // Optional: SOLANA_RPC_BACKUP=https://api.mainnet-beta.solana.com
+/// Creates the production or testnet [WalletService].
+///
+/// Pass [network] to switch all chain adapters to their public testnet
+/// equivalents without needing any API key.
+///
+/// Validation rules apply to mainnet only (testnet uses hardcoded public URLs).
+WalletService createWalletService(
+  SeedStore seedStore, {
+  AppNetwork network = AppNetwork.mainnet,
+}) {
+  if (network == AppNetwork.mainnet) _validateConfig();
+
+  final isTestnet = network == AppNetwork.testnet;
+
+  // Solana — Devnet on testnet, mainnet RPC (--dart-define) on mainnet.
   final sol = SolanaAdapter(
-    endpoint: RpcConfig.solanaRpcPrimary,
-    fallbackEndpoints: RpcConfig.solanaFallbackUrls,
+    endpoint: isTestnet ? _solTestnet : RpcConfig.solanaRpcPrimary,
+    fallbackEndpoints: isTestnet ? const [] : RpcConfig.solanaFallbackUrls,
   );
 
+  // TON — testnet.toncenter.com on testnet; authenticated mainnet otherwise.
   final ton = TonAdapter(
     TonConfig(
-      endpoint: RpcConfig.tonRpcUrl,
-      apiKey: RpcConfig.tonApiKey.isEmpty ? null : RpcConfig.tonApiKey,
+      endpoint: isTestnet ? _tonTestnet : RpcConfig.tonRpcUrl,
+      // API key only applies to mainnet (testnet endpoint is unauthenticated).
+      apiKey: isTestnet
+          ? null
+          : (RpcConfig.tonApiKey.isEmpty ? null : RpcConfig.tonApiKey),
       httpClient: SafeHttpClient(http.Client()),
     ),
   );
 
-  // Ethereum — failover across all configured endpoints.
-  // Set --dart-define=DISABLE_ETH=true to skip ALL ETH network calls.
-  // Set ETH_FALLBACK_URLS to add backup nodes, e.g.:
-  //   --dart-define=ETH_FALLBACK_URLS=https://rpc.ankr.com/eth,https://eth.llamarpc.com
+  // Ethereum — Sepolia testnet or mainnet failover.
+  // DISABLE_ETH skips ETH entirely (useful for debugging other chains).
   final eth = RpcConfig.disableEth
       ? () {
           if (kDebugMode) {
             // ignore: avoid_print
             print(
-                '[RpcConfig] ETH disabled via --dart-define=DISABLE_ETH=true. '
-                'Remove the flag or set ETH_RPC_URL to enable Ethereum.');
+                '[RpcConfig] ETH disabled via --dart-define=DISABLE_ETH=true.');
           }
           return EthereumProvider.disabled();
         }()
-      : EthereumProvider.withFailover(RpcConfig.ethRpcUrls);
+      : EthereumProvider.withFailover(
+          isTestnet ? [_ethTestnet] : RpcConfig.ethRpcUrls,
+        );
 
+  // Bitcoin — blockstream.info testnet3 or mainnet API.
   final btc = BitcoinProvider(
     Dio(BaseOptions(
       connectTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(seconds: 15),
     )),
+    baseUrl: isTestnet ? _btcTestnet : 'https://blockstream.info/api',
   );
 
   return WalletService(

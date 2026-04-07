@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../services/wallet_service.dart';
 import '../services/wallet_service_factory.dart';
 import '../secure_storage/keychain_store.dart';
+import 'network_provider.dart' show networkProvider;
 
 // ── Secure storage ────────────────────────────────────────────────────────
 
@@ -16,8 +17,11 @@ final seedStoreProvider = Provider<SeedStore>((ref) {
 
 // ── Singleton service ─────────────────────────────────────────────────────
 
+/// Rebuilds automatically when [networkProvider] changes, triggering a
+/// fresh [balanceProvider] fetch against the new chain endpoints.
 final walletServiceProvider = Provider<WalletService>((ref) {
-  return createWalletService(ref.read(seedStoreProvider));
+  final network = ref.watch(networkProvider);
+  return createWalletService(ref.read(seedStoreProvider), network: network);
 });
 
 // ── App state ─────────────────────────────────────────────────────────────

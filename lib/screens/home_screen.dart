@@ -9,53 +9,21 @@ import '../models/asset.dart';
 import '../providers/wallet_provider.dart';
 import '../providers/balance_provider.dart';
 import '../providers/price_provider.dart';
+import '../providers/locale_provider.dart';
+import '../providers/network_provider.dart';
 import '../services/wallet_service.dart';
 import '../solana/solana_rpc_client.dart' show SolanaRpcException;
 import '../http/safe_http_client.dart' show NonJsonRpcResponse;
 import 'send_screen.dart';
 import 'receive_screen.dart';
+import 'settings_screen.dart';
+import 'swap_screen.dart';
+
+import '../models/asset_id.dart';
+import '../l10n/strings.dart' show S;
 
 export '../models/asset.dart' show Asset, AssetType, kAssets;
-
-enum AssetId { vavel, btc, eth, sol, ton }
-
-extension AssetInfo on AssetId {
-  Asset get asset => kAssets.firstWhere((a) => a.id == name);
-
-  String get label => asset.name;
-  String get ticker => asset.symbol;
-  String? get geckoId => asset.geckoId;
-
-  Color get color {
-    switch (this) {
-      case AssetId.vavel:
-        return const Color(0xFF2979FF);
-      case AssetId.btc:
-        return const Color(0xFFF7931A);
-      case AssetId.eth:
-        return const Color(0xFF627EEA);
-      case AssetId.sol:
-        return const Color(0xFF9945FF);
-      case AssetId.ton:
-        return const Color(0xFF0098EA);
-    }
-  }
-
-  IconData get icon {
-    switch (this) {
-      case AssetId.vavel:
-        return Icons.token;
-      case AssetId.btc:
-        return Icons.currency_bitcoin;
-      case AssetId.eth:
-        return Icons.diamond_outlined;
-      case AssetId.sol:
-        return Icons.blur_circular;
-      case AssetId.ton:
-        return Icons.hub_outlined;
-    }
-  }
-}
+export '../models/asset_id.dart' show AssetId, AssetInfo;
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -65,6 +33,9 @@ class HomeScreen extends ConsumerWidget {
     final balancesAsync = ref.watch(balanceProvider);
     final pricesAsync = ref.watch(priceProvider);
     final addressesAsync = ref.watch(walletAddressesProvider);
+    final s = ref.watch(stringsProvider);
+    final network = ref.watch(networkProvider);
+    final isTestnet = network == AppNetwork.testnet;
 
     final prices = pricesAsync.valueOrNull ?? {};
 
@@ -102,7 +73,7 @@ class HomeScreen extends ConsumerWidget {
 
     double portfolioTotal = 0;
     for (final id in AssetId.values) {
-      final price = id.geckoId != null ? (prices[id.geckoId] ?? 0) : 0;
+      final price = prices[id.ticker] ?? 0;
       final amount = balanceNum(id, balances) ?? 0;
       portfolioTotal += price * amount;
     }
@@ -121,14 +92,33 @@ class HomeScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: 8),
-            const Text('VAVEL WALLET',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Text(s.appTitle,
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            if (isTestnet) ...[
+              const SizedBox(width: 8),
+              _TestnetBadge(),
+            ],
           ],
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.swap_horiz_outlined),
+            tooltip: s.swap,
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const SwapScreen()),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: s.settings,
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            ),
+          ),
+          IconButton(
             icon: const Icon(Icons.lock_outline),
-            tooltip: 'Lock wallet',
+            tooltip: s.lockWallet,
             onPressed: () => ref.read(appRouteProvider.notifier).lockWallet(),
           ),
         ],
@@ -140,11 +130,17 @@ class HomeScreen extends ConsumerWidget {
         },
         child: CustomScrollView(
           slivers: [
+            // Testnet warning bar at the very top
+            if (isTestnet)
+              SliverToBoxAdapter(
+                child: _TestnetBanner(s.networkTestnetWarning),
+              ),
             SliverToBoxAdapter(
               child: _PortfolioHeader(
                 total: portfolioTotal,
                 fmt: usdFmt,
                 loading: balancesAsync.isLoading,
+                s: s,
               ),
             ),
             if (balancesAsync.hasError)
@@ -168,7 +164,7 @@ class HomeScreen extends ConsumerWidget {
             SliverList(
               delegate: SliverChildListDelegate([
                 ...AssetId.values.map((id) {
-                  final price = id.geckoId != null ? prices[id.geckoId] : null;
+                  final price = prices[id.ticker];
                   final amount = balanceNum(id, balances);
                   final usdValue =
                       (price != null && amount != null) ? price * amount : null;
@@ -181,6 +177,8 @@ class HomeScreen extends ConsumerWidget {
                     usdFmt: usdFmt,
                     cryptoFmt: cryptoFmt,
                     loading: balancesAsync.isLoading,
+                    priceLoading: pricesAsync.isLoading,
+                    s: s,
                     onSend: () => Navigator.of(context).push(MaterialPageRoute(
                       builder: (_) =>
                           SendScreen(assetId: id, address: address(id)),
@@ -189,6 +187,9 @@ class HomeScreen extends ConsumerWidget {
                         Navigator.of(context).push(MaterialPageRoute(
                       builder: (_) =>
                           ReceiveScreen(assetId: id, address: address(id)),
+                    )),
+                    onSwap: () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => const SwapScreen(),
                     )),
                   );
                 }),
@@ -211,8 +212,12 @@ class _PortfolioHeader extends StatelessWidget {
   final double total;
   final NumberFormat fmt;
   final bool loading;
+  final S s;
   const _PortfolioHeader(
-      {required this.total, required this.fmt, required this.loading});
+      {required this.total,
+      required this.fmt,
+      required this.loading,
+      required this.s});
 
   @override
   Widget build(BuildContext context) {
@@ -231,8 +236,8 @@ class _PortfolioHeader extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Text('Total Portfolio',
-              style: TextStyle(color: Colors.grey, fontSize: 13)),
+          Text(s.totalPortfolio,
+              style: const TextStyle(color: Colors.grey, fontSize: 13)),
           const SizedBox(height: 8),
           loading
               ? const CircularProgressIndicator(strokeWidth: 2)
@@ -240,8 +245,8 @@ class _PortfolioHeader extends StatelessWidget {
                   style: const TextStyle(
                       fontSize: 32, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
-          const Text('USD Value',
-              style: TextStyle(color: Colors.grey, fontSize: 12)),
+          Text(s.usdValue,
+              style: const TextStyle(color: Colors.grey, fontSize: 12)),
         ],
       ),
     );
@@ -255,8 +260,11 @@ class _AssetTile extends StatelessWidget {
   final NumberFormat usdFmt;
   final NumberFormat cryptoFmt;
   final bool loading;
+  final bool priceLoading;
+  final S s;
   final VoidCallback onSend;
   final VoidCallback onReceive;
+  final VoidCallback onSwap;
 
   const _AssetTile({
     required this.id,
@@ -265,8 +273,11 @@ class _AssetTile extends StatelessWidget {
     required this.usdFmt,
     required this.cryptoFmt,
     required this.loading,
+    required this.priceLoading,
+    required this.s,
     required this.onSend,
     required this.onReceive,
+    required this.onSwap,
   });
 
   @override
@@ -320,7 +331,7 @@ class _AssetTile extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              loading
+              (loading || priceLoading)
                   ? Container(
                       height: 14,
                       width: 60,
@@ -330,22 +341,28 @@ class _AssetTile extends StatelessWidget {
                   : Text(
                       usdValue != null
                           ? usdFmt.format(usdValue)
-                          : (id == AssetId.vavel ? '—' : r'$0.00'),
+                          : (id == AssetId.vavel ? '—' : s.priceUnavailable),
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 15)),
               const SizedBox(height: 8),
               Row(children: [
                 _ActionChip(
-                    label: 'Send',
+                    label: s.send,
                     icon: Icons.arrow_upward,
                     color: id.color,
                     onTap: onSend),
                 const SizedBox(width: 6),
                 _ActionChip(
-                    label: 'Receive',
+                    label: s.receive,
                     icon: Icons.arrow_downward,
                     color: id.color,
                     onTap: onReceive),
+                const SizedBox(width: 6),
+                _ActionChip(
+                    label: s.swap,
+                    icon: Icons.swap_horiz,
+                    color: id.color,
+                    onTap: onSwap),
               ]),
             ],
           ),
@@ -455,19 +472,24 @@ class _ChainErrorBanner extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
-            children: [
-              Icon(Icons.wifi_off_rounded, size: 14, color: Colors.orange),
-              SizedBox(width: 6),
-              Text(
-                'Some balances unavailable',
-                style: TextStyle(
-                    color: Colors.orange,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
+          Builder(builder: (context) {
+            // Read strings from nearest ConsumerWidget ancestor via InheritedWidget is not
+            // possible here (StatelessWidget); use a hard-coded fallback instead.
+            // The banner text is a secondary detail so this is acceptable.
+            return const Row(
+              children: [
+                Icon(Icons.wifi_off_rounded, size: 14, color: Colors.orange),
+                SizedBox(width: 6),
+                Text(
+                  'Some balances unavailable',
+                  style: TextStyle(
+                      color: Colors.orange,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600),
+                ),
+              ],
+            );
+          }),
           const SizedBox(height: 6),
           ...errors.entries.map(
             (e) => Padding(
@@ -476,6 +498,63 @@ class _ChainErrorBanner extends StatelessWidget {
                 '${e.key.toUpperCase()}: ${_message(e.key, e.value)}',
                 style: const TextStyle(color: Colors.orange, fontSize: 11),
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Testnet badge (AppBar title) ──────────────────────────────────────────
+
+class _TestnetBadge extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.orange.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.orange, width: 1),
+      ),
+      child: const Text(
+        'TESTNET',
+        style: TextStyle(
+          color: Colors.orange,
+          fontSize: 9,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+}
+
+// ── Testnet warning banner (body) ─────────────────────────────────────────
+
+class _TestnetBanner extends StatelessWidget {
+  final String message;
+  const _TestnetBanner(this.message);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.orange.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.science_outlined, color: Colors.orange, size: 16),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(color: Colors.orange, fontSize: 12),
             ),
           ),
         ],

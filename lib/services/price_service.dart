@@ -1,13 +1,15 @@
 import 'package:dio/dio.dart';
 
-/// Maps uppercase ticker symbols to CoinGecko coin IDs.
-/// Assets absent from CoinGecko (e.g. VAVEL) are not included.
+/// Supported symbols and their CoinGecko IDs (used in fallback path).
 const _symbolToGeckoId = {
   'BTC': 'bitcoin',
   'ETH': 'ethereum',
   'SOL': 'solana',
   'TON': 'toncoin',
 };
+
+/// Symbols supported by the primary CryptoCompare endpoint.
+const _cryptoCompareSymbols = ['BTC', 'ETH', 'SOL', 'TON'];
 
 class PriceProvider {
   final Dio _dio;
@@ -18,21 +20,50 @@ class PriceProvider {
   ///
   /// Throws an [Exception] when [symbol] is not in the supported set.
   Future<double> getUsdPrice(String symbol) async {
-    final id = _symbolToGeckoId[symbol.toUpperCase()];
-    if (id == null) {
+    final prices = await fetchPrices();
+    final price = prices[symbol.toUpperCase()];
+    if (price == null) {
       throw Exception('Unsupported symbol for USD pricing: $symbol');
     }
-
-    final resp = await _dio.get<Map<String, dynamic>>(
-      'https://api.coingecko.com/api/v3/simple/price',
-      queryParameters: {'ids': id, 'vs_currencies': 'usd'},
-    );
-    return (resp.data![id]!['usd'] as num).toDouble();
+    return price;
   }
 
   /// Returns USD prices for all supported assets in a single request.
-  /// VAVEL is not on CoinGecko yet, so its key will be absent from the map.
+  ///
+  /// Tries CryptoCompare first (CORS-friendly for web); falls back to
+  /// CoinGecko if the primary request fails.
+  ///
+  /// VAVEL is not listed on either exchange — its key is absent from the map.
   Future<Map<String, double>> fetchPrices() async {
+    try {
+      return await _fetchFromCryptoCompare();
+    } catch (_) {
+      return _fetchFromCoinGecko();
+    }
+  }
+
+  /// CryptoCompare public API — allows browser CORS requests without an API key.
+  Future<Map<String, double>> _fetchFromCryptoCompare() async {
+    final fsyms = _cryptoCompareSymbols.join(',');
+    final response = await _dio.get<Map<String, dynamic>>(
+      'https://min-api.cryptocompare.com/data/pricemulti',
+      queryParameters: {'fsyms': fsyms, 'tsyms': 'USD'},
+    );
+    final data = response.data!;
+    final result = <String, double>{};
+    for (final symbol in _cryptoCompareSymbols) {
+      final entry = data[symbol] as Map<String, dynamic>?;
+      if (entry != null) {
+        result[symbol] = (entry['USD'] as num).toDouble();
+      }
+    }
+    if (result.isEmpty) throw Exception('CryptoCompare returned empty data');
+    return result;
+  }
+
+  /// CoinGecko fallback — may be rate-limited on the free tier.
+  /// Returns prices keyed by uppercase ticker symbol (e.g. 'BTC').
+  Future<Map<String, double>> _fetchFromCoinGecko() async {
     final ids = _symbolToGeckoId.values.join(',');
     final response = await _dio.get<Map<String, dynamic>>(
       'https://api.coingecko.com/api/v3/simple/price',
@@ -43,7 +74,7 @@ class PriceProvider {
     for (final entry in _symbolToGeckoId.entries) {
       final coin = data[entry.value] as Map<String, dynamic>?;
       if (coin != null) {
-        result[entry.value] = (coin['usd'] as num).toDouble();
+        result[entry.key] = (coin['usd'] as num).toDouble();
       }
     }
     return result;
