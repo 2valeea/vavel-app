@@ -1,0 +1,40 @@
+name: vavel_wallet
+description: Vavel Innovation Token Wallet.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # Networking
+  http: ^1.2.1
+  dio: ^5.4.3
+  # State management
+  flutter_riverpod: ^2.5.1
+  # Crypto/chain
+  web3dart: ^2.7.3
+  cryptography: ^2.7.0
+  ton_dart: ^2.1.0
+  blockchain_utils: ^5.4.0
+  bip39: ^1.0.6
+  # Storage
+  flutter_secure_storage: ^9.2.2
+  # Auth
+  local_auth: ^2.3.0
+  crypto: ^3.0.3
+  # UI
+  qr_flutter: ^4.1.0
+  intl: ^0.19.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/VAVEL.jpeg
