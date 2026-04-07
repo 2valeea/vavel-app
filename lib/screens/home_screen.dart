@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../models/asset.dart';
 import '../providers/wallet_provider.dart';
 import '../providers/balance_provider.dart';
 import '../providers/price_provider.dart';
@@ -20,7 +19,6 @@ import 'settings_screen.dart';
 import 'swap_screen.dart';
 
 import '../models/asset_id.dart';
-import '../l10n/strings.dart' show S;
 
 export '../models/asset.dart' show Asset, AssetType, kAssets;
 export '../models/asset_id.dart' show AssetId, AssetInfo;
