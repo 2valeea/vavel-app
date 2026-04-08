@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../models/asset.dart';
 import '../providers/wallet_provider.dart';
 import '../providers/balance_provider.dart';
 import '../providers/price_provider.dart';
@@ -14,13 +13,13 @@ import '../providers/network_provider.dart';
 import '../services/wallet_service.dart';
 import '../solana/solana_rpc_client.dart' show SolanaRpcException;
 import '../http/safe_http_client.dart' show NonJsonRpcResponse;
+import 'browser_screen.dart';
 import 'send_screen.dart';
 import 'receive_screen.dart';
 import 'settings_screen.dart';
 import 'swap_screen.dart';
 
 import '../models/asset_id.dart';
-import '../l10n/strings.dart' show S;
 
 export '../models/asset.dart' show Asset, AssetType, kAssets;
 export '../models/asset_id.dart' show AssetId, AssetInfo;
@@ -102,6 +101,13 @@ class HomeScreen extends ConsumerWidget {
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.language_outlined),
+            tooltip: s.browserTitle,
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const BrowserScreen()),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.swap_horiz_outlined),
             tooltip: s.swap,

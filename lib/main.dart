@@ -18,7 +18,15 @@ class VavelApp extends ConsumerWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       locale: locale,
-      supportedLocales: const [Locale('en'), Locale('ru')],
+      supportedLocales: const [
+        Locale('en'),
+        Locale('ru'),
+        Locale('de'),
+        Locale('da'),
+        Locale('et'),
+        Locale('pt'),
+        Locale('uk'),
+      ],
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: const Color(0xFF0D1B2E),
         colorScheme: const ColorScheme.dark(
