@@ -30,6 +30,12 @@ jobs:
       - name: Flutter version
         run: flutter --version
 
+      - name: Show repo structure
+        run: |
+          pwd
+          ls -la
+          find . -maxdepth 3 -name pubspec.yaml -print
+
       - name: Pub get
         run: flutter pub get
 
