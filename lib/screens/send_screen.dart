@@ -4,6 +4,7 @@ import '../models/fee_estimate.dart' show FeeEstimationException;
 import '../providers/balance_provider.dart';
 import '../providers/portfolio_provider.dart'
     show ethFeeProvider, kEthTransferGasLimit;
+import '../providers/tx_history_provider.dart';
 import '../providers/wallet_provider.dart';
 import 'home_screen.dart' show AssetId, AssetInfo;
 
@@ -84,6 +85,15 @@ class _SendScreenState extends ConsumerState<SendScreen> {
           return;
       }
       if (mounted) setState(() => _txHash = hash);
+      // Record in local transaction history
+      await ref.read(txHistoryProvider.notifier).add(TxRecord(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            asset: widget.assetId.ticker,
+            to: to,
+            amount: amount,
+            txHash: hash != 'sent' ? hash : null,
+            timestamp: DateTime.now(),
+          ));
     } catch (e) {
       if (mounted) setState(() => _error = e.toString());
     } finally {

@@ -13,6 +13,7 @@ import '../providers/network_provider.dart';
 import '../services/wallet_service.dart';
 import '../solana/solana_rpc_client.dart' show SolanaRpcException;
 import '../http/safe_http_client.dart' show NonJsonRpcResponse;
+import 'browser_screen.dart';
 import 'send_screen.dart';
 import 'receive_screen.dart';
 import 'settings_screen.dart';
@@ -100,6 +101,13 @@ class HomeScreen extends ConsumerWidget {
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.language_outlined),
+            tooltip: s.browserTitle,
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const BrowserScreen()),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.swap_horiz_outlined),
             tooltip: s.swap,
