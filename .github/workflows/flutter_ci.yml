@@ -19,22 +19,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Fix for failing "Unable to determine Flutter version for channel: stable"
+      # webview_flutter ^4.10.0 requires Dart >=3.5.0 (Flutter >=3.24.0)
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.22.3"
+          flutter-version: "3.41.6"
           channel: "stable"
           cache: true
 
       - name: Flutter version
         run: flutter --version
-
-      - name: Show repo structure
-        run: |
-          pwd
-          ls -la
-          find . -maxdepth 3 -name pubspec.yaml -print
 
       - name: Pub get
         run: flutter pub get
