@@ -10,6 +10,9 @@ jobs:
   test:
     name: Analyze & Test
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vavel_wallet
 
     steps:
       - name: Checkout
@@ -36,5 +39,5 @@ jobs:
         if: always()
         with:
           name: coverage
-          path: coverage/lcov.info
+          path: vavel_wallet/coverage/lcov.info
           retention-days: 7
