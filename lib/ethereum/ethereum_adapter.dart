@@ -1,6 +1,7 @@
 import 'package:web3dart/web3dart.dart';
 import 'package:web3dart/json_rpc.dart' show RPCError;
 import 'package:http/http.dart' as http;
+import 'package:wallet/wallet.dart';
 
 import '../models/asset.dart' show AssetBalance;
 import '../http/safe_http_client.dart' show SafeHttpClient;

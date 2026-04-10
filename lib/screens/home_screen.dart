@@ -127,6 +127,12 @@ class HomeScreen extends ConsumerWidget {
             tooltip: s.lockWallet,
             onPressed: () => ref.read(appRouteProvider.notifier).lockWallet(),
           ),
+          IconButton(
+            icon: const Icon(Icons.link),
+            tooltip: 'dApp Connect',
+            onPressed: () =>
+                ref.read(appRouteProvider.notifier).goDappConnect(),
+          ),
         ],
       ),
       body: RefreshIndicator(

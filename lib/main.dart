@@ -6,6 +6,7 @@ import 'providers/locale_provider.dart';
 import 'screens/setup_screen.dart';
 import 'screens/pin_auth_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/dapp_connect_screen.dart';
 
 void main() => runApp(const ProviderScope(child: VavelApp()));
 
@@ -64,6 +65,7 @@ class _AppRouter extends ConsumerWidget {
       AppRoute.setup => const SetupScreen(),
       AppRoute.pinAuth => const PinAuthScreen(),
       AppRoute.home => const HomeScreen(),
+      AppRoute.dappConnect => const DappConnectScreen(),
     };
   }
 }

@@ -1,5 +1,12 @@
 include: package:flutter_lints/flutter.yaml
 
+analyzer:
+  exclude:
+    - dev/**
+    - test/**
+  errors:
+    todo: ignore
+
 linter:
   rules:
     curly_braces_in_flow_control_structures: true

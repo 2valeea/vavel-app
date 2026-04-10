@@ -26,7 +26,7 @@ final walletServiceProvider = Provider<WalletService>((ref) {
 
 // ── App state ─────────────────────────────────────────────────────────────
 
-enum AppRoute { setup, pinAuth, home }
+enum AppRoute { setup, pinAuth, home, dappConnect }
 
 final appRouteProvider = StateNotifierProvider<AppRouteNotifier, AppRoute>(
   (ref) => AppRouteNotifier(ref.read(seedStoreProvider)),
@@ -47,6 +47,7 @@ class AppRouteNotifier extends StateNotifier<AppRoute> {
   void goHome() => state = AppRoute.home;
   void goSetup() => state = AppRoute.setup;
   void lockWallet() => state = AppRoute.pinAuth;
+  void goDappConnect() => state = AppRoute.dappConnect;
 }
 
 // ── Wallet addresses ──────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 import 'package:blockchain_utils/blockchain_utils.dart';
-import 'package:web3dart/credentials.dart';
+import 'package:web3dart/web3dart.dart';
 
 class EthereumKeyPair {
   final EthPrivateKey privateKey;
@@ -21,6 +21,6 @@ EthereumKeyPair ethereumKeypairFromSeed(List<int> seed) {
 
   final rawPrivKey = account.privateKey.raw;
   final ethPrivKey = EthPrivateKey(Uint8List.fromList(rawPrivKey));
-  final address = ethPrivKey.address.hexEip55;
+  final address = ethPrivKey.address.eip55With0x;
   return EthereumKeyPair(privateKey: ethPrivKey, address: address);
 }

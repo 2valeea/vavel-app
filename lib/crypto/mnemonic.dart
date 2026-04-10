@@ -1,12 +1,22 @@
-import 'package:bip39/bip39.dart' as bip39;
+import 'package:bip39_mnemonic/bip39_mnemonic.dart';
 
 Future<String> generateMnemonic([int words = 12]) async {
-  final strength = words == 24 ? 256 : 128;
-  return bip39.generateMnemonic(strength: strength);
+  final length = words == 24 ? MnemonicLength.words24 : MnemonicLength.words12;
+  final mnemonic = Mnemonic.generate(
+    Language.english,
+    length: length,
+  );
+  return mnemonic.sentence;
 }
 
-bool validateMnemonic(String mnemonic) =>
-    bip39.validateMnemonic(mnemonic.trim());
+bool validateMnemonic(String mnemonic) {
+  try {
+    Mnemonic.fromSentence(mnemonic.trim(), Language.english);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
 
 List<int> mnemonicToSeed(String mnemonic) =>
-    bip39.mnemonicToSeed(mnemonic.trim());
+    Mnemonic.fromSentence(mnemonic.trim(), Language.english).seed;
