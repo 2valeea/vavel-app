@@ -239,6 +239,193 @@ class S {
       et: 'Vaata kõiki tehinguid',
       pt: 'Ver todas as transações',
       uk: 'Переглянути всі транзакції');
+  String get historyTabOnChain => _t('On-chain',
+      ru: 'Ончейн',
+      de: 'On-Chain',
+      da: 'On-chain',
+      et: 'Ahelas',
+      pt: 'On-chain',
+      uk: 'Ончейн');
+  String get historyTabWalletConnect => _t('WalletConnect',
+      ru: 'WalletConnect',
+      de: 'WalletConnect',
+      da: 'WalletConnect',
+      et: 'WalletConnect',
+      pt: 'WalletConnect',
+      uk: 'WalletConnect');
+  String get historyWcEmpty => _t(
+      'No WalletConnect activity yet. Approvals, signatures, and transactions from dApp Connect will appear here.',
+      ru: 'Пока нет активности WalletConnect. Подключения, подписи и транзакции из раздела dApp Connect появятся здесь.',
+      de: 'Noch keine WalletConnect-Aktivität. Genehmigungen, Signaturen und Transaktionen aus dApp Connect erscheinen hier.',
+      da: 'Ingen WalletConnect-aktivitet endnu. Godkendelser, signaturer og transaktioner fra dApp Connect vises her.',
+      et: 'WalletConnecti tegevust pole veel. dApp Connect heakskiidud, allkirjad ja tehingud kuvatakse siin.',
+      pt: 'Ainda sem atividade WalletConnect. Aprovações, assinaturas e transações do dApp Connect aparecem aqui.',
+      uk: 'Поки немає активності WalletConnect. Підтвердження, підписи та транзакції з dApp Connect з’являться тут.');
+  String get historyClearWcTitle => _t('Clear WalletConnect log?',
+      ru: 'Очистить журнал WalletConnect?',
+      de: 'WalletConnect-Protokoll löschen?',
+      da: 'Ryd WalletConnect-log?',
+      et: 'Kustutada WalletConnecti logi?',
+      pt: 'Limpar registo WalletConnect?',
+      uk: 'Очистити журнал WalletConnect?');
+  String get historyClearWcBody => _t(
+      'This removes locally stored WalletConnect session and signing history from this device.',
+      ru: 'Это удалит локально сохранённую историю сессий и подписей WalletConnect на этом устройстве.',
+      de: 'Dadurch wird die lokal gespeicherte WalletConnect-Sitzungs- und Signaturhistorie auf diesem Gerät entfernt.',
+      da: 'Dette fjerner lokalt gemt WalletConnect-session og signeringshistorik på denne enhed.',
+      et: 'See eemaldab selles seadmes kohapeal salvestatud WalletConnecti seansi- ja allkirjade ajaloo.',
+      pt: 'Isto remove o histórico local de sessões e assinaturas WalletConnect neste dispositivo.',
+      uk: 'Це видалить локально збережену історію сесій і підписів WalletConnect на цьому пристрої.');
+  String get historyClearWcAction => _t('Clear log',
+      ru: 'Очистить',
+      de: 'Protokoll löschen',
+      da: 'Ryd log',
+      et: 'Tühjenda logi',
+      pt: 'Limpar registo',
+      uk: 'Очистити');
+
+  String get historyChipAll => _t('All',
+      ru: 'Все',
+      de: 'Alle',
+      da: 'Alle',
+      et: 'Kõik',
+      pt: 'Tudo',
+      uk: 'Усе');
+  String get historyBadgeOnChain => _t('On-chain',
+      ru: 'Ончейн',
+      de: 'On-Chain',
+      da: 'On-chain',
+      et: 'Ahelas',
+      pt: 'On-chain',
+      uk: 'Ончейн');
+  String get historyBadgeDapp => _t('dApp',
+      ru: 'dApp',
+      de: 'dApp',
+      da: 'dApp',
+      et: 'dApp',
+      pt: 'dApp',
+      uk: 'dApp');
+  String get historyEmptyUnified => _t(
+      'No activity yet. Outgoing transfers and WalletConnect events will appear here in one timeline.',
+      ru:
+          'Пока нет активности. Исходящие переводы и события WalletConnect появятся здесь в одной ленте.',
+      de:
+          'Noch keine Aktivität. Ausgehende Überweisungen und WalletConnect-Ereignisse erscheinen hier in einer Zeitleiste.',
+      da:
+          'Ingen aktivitet endnu. Udgående overførsler og WalletConnect-begivenheder vises her i én tidslinje.',
+      et:
+          'Tegevust pole veel. Väljuvad ülekanded ja WalletConnecti sündmused kuvatakse siin ühel ajajoonel.',
+      pt:
+          'Ainda sem atividade. Transferências enviadas e eventos WalletConnect aparecem aqui numa única linha do tempo.',
+      uk:
+          'Поки немає активності. Вихідні перекази та події WalletConnect з’являться тут в одній стрічці.');
+  String get historyEmptyFilter => _t('Nothing in this category yet.',
+      ru: 'В этой категории пока ничего нет.',
+      de: 'In dieser Kategorie ist noch nichts vorhanden.',
+      da: 'Intet i denne kategori endnu.',
+      et: 'Selles kategoorias pole veel midagi.',
+      pt: 'Nada nesta categoria ainda.',
+      uk: 'У цій категорії поки нічого немає.');
+  String get historyClearAllTitle => _t('Clear all activity?',
+      ru: 'Очистить всю активность?',
+      de: 'Alle Aktivität löschen?',
+      da: 'Ryd al aktivitet?',
+      et: 'Kustutada kogu tegevus?',
+      pt: 'Limpar toda a atividade?',
+      uk: 'Очистити всю активність?');
+  String get historyClearAllBody => _t(
+      'This removes on-chain send history and the WalletConnect activity log stored on this device.',
+      ru:
+          'Это удалит историю исходящих переводов и журнал WalletConnect, сохранённые на этом устройстве.',
+      de:
+          'Dadurch werden der On-Chain-Sendeverlauf und das WalletConnect-Aktivitätsprotokoll auf diesem Gerät entfernt.',
+      da:
+          'Dette fjerner on-chain sendehistorik og WalletConnect-aktivitetslog på denne enhed.',
+      et:
+          'See eemaldab ahelas väljasaatmiste ajaloo ja WalletConnecti tegevuse logi sellest seadmest.',
+      pt:
+          'Isto remove o histórico de envios on-chain e o registo de atividade WalletConnect neste dispositivo.',
+      uk:
+          'Це видалить історію відправлень ончейн і журнал активності WalletConnect на цьому пристрої.');
+  String get historyMenuClearOnChain => _t('Clear on-chain history',
+      ru: 'Очистить ончейн-историю',
+      de: 'On-Chain-Verlauf löschen',
+      da: 'Ryd on-chain historik',
+      et: 'Tühjenda ahela ajalugu',
+      pt: 'Limpar histórico on-chain',
+      uk: 'Очистити ончейн-історію');
+  String get historyMenuClearWc => _t('Clear dApp activity log',
+      ru: 'Очистить журнал dApp',
+      de: 'dApp-Aktivitätsprotokoll löschen',
+      da: 'Ryd dApp-aktivitetslog',
+      et: 'Tühjenda dAppi tegevuse logi',
+      pt: 'Limpar registo de atividade dApp',
+      uk: 'Очистити журнал активності dApp');
+  String get historyMenuClearAll => _t('Clear everything',
+      ru: 'Очистить всё',
+      de: 'Alles löschen',
+      da: 'Ryd alt',
+      et: 'Tühjenda kõik',
+      pt: 'Limpar tudo',
+      uk: 'Очистити все');
+  String get historyLoadingWcLine => _t('Loading dApp activity…',
+      ru: 'Загрузка активности dApp…',
+      de: 'dApp-Aktivität wird geladen…',
+      da: 'Indlæser dApp-aktivitet…',
+      et: 'Laadin dAppi tegevust…',
+      pt: 'A carregar atividade dApp…',
+      uk: 'Завантаження активності dApp…');
+  String get historyWcLoadErrorLead => _t(
+      'Could not refresh dApp activity. On-chain items are still shown.',
+      ru:
+          'Не удалось обновить активность dApp. Ончейн-записи по-прежнему отображаются.',
+      de:
+          'dApp-Aktivität konnte nicht aktualisiert werden. On-Chain-Einträge werden weiterhin angezeigt.',
+      da:
+          'Kunne ikke opdatere dApp-aktivitet. On-chain-poster vises stadig.',
+      et:
+          'dAppi tegevust ei saanud värskendada. Ahela kanded on endiselt näha.',
+      pt:
+          'Não foi possível atualizar a atividade dApp. Itens on-chain continuam visíveis.',
+      uk:
+          'Не вдалося оновити активність dApp. Ончейн-записи все ще відображаються.');
+
+  // ── Legal (store placeholders) ───────────────────────────────────────────
+  String get legalSection => _t('Legal',
+      ru: 'Право',
+      de: 'Rechtliches',
+      da: 'Juridisk',
+      et: 'Juriidiline',
+      pt: 'Legal',
+      uk: 'Юридичне');
+  String get legalTermsTitle => _t('Terms of Service',
+      ru: 'Условия использования',
+      de: 'Nutzungsbedingungen',
+      da: 'Servicevilkår',
+      et: 'Kasutustingimused',
+      pt: 'Termos de serviço',
+      uk: 'Умови використання');
+  String get legalTermsDesc => _t('Rules for using Vavel Wallet',
+      ru: 'Правила использования Vavel Wallet',
+      de: 'Regeln für die Nutzung von Vavel Wallet',
+      da: 'Regler for brug af Vavel Wallet',
+      et: 'Vavel Walleti kasutamise reeglid',
+      pt: 'Regras de utilização da Vavel Wallet',
+      uk: 'Правила використання Vavel Wallet');
+  String get legalPrivacyTitle => _t('Privacy Policy',
+      ru: 'Политика конфиденциальности',
+      de: 'Datenschutzerklärung',
+      da: 'Privatlivspolitik',
+      et: 'Privaatsuspoliitika',
+      pt: 'Política de privacidade',
+      uk: 'Політика конфіденційності');
+  String get legalPrivacyDesc => _t('How we handle your data',
+      ru: 'Как мы обрабатываем ваши данные',
+      de: 'Wie wir mit Ihren Daten umgehen',
+      da: 'Sådan håndterer vi dine data',
+      et: 'Kuidas me teie andmeid käsitleme',
+      pt: 'Como tratamos os seus dados',
+      uk: 'Як ми обробляємо ваші дані');
 
   // ── Support ──────────────────────────────────────────────────────────────
   String get support => _t('Support',

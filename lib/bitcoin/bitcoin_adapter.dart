@@ -1,3 +1,5 @@
+import 'package:bitcoin_base/bitcoin_base.dart';
+import 'package:blockchain_utils/blockchain_utils.dart' show StringUtils;
 import 'package:dio/dio.dart';
 import '../models/asset.dart' show AssetBalance;
 
@@ -41,6 +43,49 @@ class BitcoinProvider {
   Future<BigInt> estimateFeeSats({int satsPerVb = 10}) async {
     const vbytes = 141;
     return BigInt.from(vbytes * satsPerVb);
+  }
+
+  /// Fetches spendable UTXOs for a legacy (P2PKH) address from Blockstream-style JSON.
+  ///
+  /// [publicKeyHex] must be a valid compressed secp256k1 public key (hex, optional `0x`).
+  Future<List<UtxoWithAddress>> fetchP2pkhUtxos({
+    required String legacyAddress,
+    required String publicKeyHex,
+    required BitcoinNetwork network,
+  }) async {
+    final resp = await _dio.get<List<dynamic>>('$baseUrl/address/$legacyAddress/utxo');
+    final list = resp.data ?? const <dynamic>[];
+    final pk = StringUtils.strip0x(publicKeyHex.toLowerCase());
+    ECPublic.fromHex(pk);
+    final baseAddr = BitcoinAddress(legacyAddress, network: network).baseAddress;
+    final owner = UtxoAddressDetails(publicKey: pk, address: baseAddr);
+
+    final out = <UtxoWithAddress>[];
+    for (final item in list) {
+      if (item is! Map) continue;
+      final m = Map<String, dynamic>.from(item);
+      final txid = m['txid'] as String?;
+      final vout = m['vout'];
+      final value = m['value'];
+      if (txid == null || vout is! int || value == null) continue;
+
+      final status = m['status'];
+      int? blockHeight;
+      if (status is Map<String, dynamic>) {
+        final bh = status['block_height'];
+        if (bh is int) blockHeight = bh;
+      }
+
+      final utxo = BitcoinUtxo(
+        txHash: txid,
+        value: BigInt.from((value as num).toInt()),
+        vout: vout,
+        scriptType: P2pkhAddressType.p2pkh,
+        blockHeight: blockHeight,
+      );
+      out.add(UtxoWithAddress(utxo: utxo, ownerDetails: owner));
+    }
+    return out;
   }
 
   /// Broadcasts a raw signed transaction and returns the txid.

@@ -60,6 +60,44 @@ class FeeService {
     }
   }
 
+  /// Max total fee in wei for an EIP-1559 tx: [maxFeePerGas] × [gasLimit].
+  ///
+  /// Used when the user picks custom gas; USD uses the same ETH price feed.
+  Future<FeeEstimate> estimateEthereumMaxFeeUsd({
+    required BigInt maxFeePerGas,
+    required int gasLimit,
+  }) async {
+    try {
+      final feeWei = maxFeePerGas * BigInt.from(gasLimit);
+      final ethUsd = await prices.getUsdPrice('ETH');
+      final feeEth = feeWei.toDouble() / 1e18;
+      return FeeEstimate(
+        network: 'ethereum',
+        nativeAmount: feeWei,
+        usd: feeEth * ethUsd,
+      );
+    } on FeeEstimationException {
+      rethrow;
+    } catch (e) {
+      throw FeeEstimationException(
+        network: 'ethereum',
+        userMessage: _humanize(e, 'ethereum'),
+        cause: e,
+      );
+    }
+  }
+
+  /// Legacy chain: [gasPriceWei] × [gasLimit].
+  Future<FeeEstimate> estimateEthereumLegacyFeeUsd({
+    required BigInt gasPriceWei,
+    required int gasLimit,
+  }) async {
+    return estimateEthereumMaxFeeUsd(
+      maxFeePerGas: gasPriceWei,
+      gasLimit: gasLimit,
+    );
+  }
+
   /// Converts a raw exception into a short, user-facing message.
   ///
   /// [network] names the chain (e.g. `'ethereum'`, `'bitcoin'`) so the message

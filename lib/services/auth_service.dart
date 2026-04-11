@@ -68,4 +68,22 @@ class AuthService {
       ),
     );
   }
+
+  /// Biometric gate for signing, sending, or approving connections (in-app only).
+  static Future<bool> authenticateSensitiveWithBiometrics({
+    required String localizedReason,
+  }) async {
+    if (kIsWeb) return false;
+    try {
+      return await _localAuth.authenticate(
+        localizedReason: localizedReason,
+        options: const AuthenticationOptions(
+          biometricOnly: true,
+          stickyAuth: true,
+        ),
+      );
+    } catch (_) {
+      return false;
+    }
+  }
 }

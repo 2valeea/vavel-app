@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../navigation/premium_page_route.dart';
 import '../providers/wallet_provider.dart';
 import '../crypto/mnemonic.dart';
 import 'mnemonic_backup_screen.dart';
@@ -28,9 +29,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
       final mnemonic = await generateMnemonic(12);
       ref.read(pendingMnemonicProvider.notifier).state = mnemonic;
       if (!mounted) return;
-      await Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const MnemonicBackupScreen()),
-      );
+      await pushPremium(context, const MnemonicBackupScreen());
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -48,12 +47,11 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
     try {
       await ref.read(seedStoreProvider).saveMnemonic(words);
       if (!mounted) return;
-      await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => PinSetupScreen(onComplete: () {
-            ref.read(appRouteProvider.notifier).goHome();
-          }),
-        ),
+      await pushPremium(
+        context,
+        PinSetupScreen(onComplete: () {
+          ref.read(appRouteProvider.notifier).goHome();
+        }),
       );
     } finally {
       if (mounted) setState(() => _loading = false);

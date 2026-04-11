@@ -49,6 +49,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.1"
+  bitcoin_base:
+    dependency: "direct main"
+    description:
+      name: bitcoin_base
+      sha256: "88be48282b67f61918c12586df3f23d9ff40b032c5cfe755dd802f2866a0a768"
+      url: "https://pub.dev"
+    source: hosted
+    version: "7.0.0"
   blockchain_utils:
     dependency: "direct main"
     description:
@@ -73,6 +81,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.2"
+  buffer:
+    dependency: transitive
+    description:
+      name: buffer
+      sha256: "389da2ec2c16283c8787e0adaede82b1842102f8c8aae2f49003a766c5c6b3d1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.3"
   characters:
     dependency: transitive
     description:
@@ -178,7 +194,7 @@ packages:
     source: hosted
     version: "0.3.1"
   eip1559:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: eip1559
       sha256: c2b81ac85f3e0e71aaf558201dd9a4600f051ece7ebacd0c5d70065c9b458004
@@ -193,6 +209,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.3"
+  equatable:
+    dependency: transitive
+    description:
+      name: equatable
+      sha256: "3e0141505477fd8ad55d6eb4e7776d3fe8430be8e497ccb1521370c3f21a3e2b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.8"
+  eth_sig_util_plus:
+    dependency: "direct main"
+    description:
+      name: eth_sig_util_plus
+      sha256: "0f9a72c0e3909df928c27dfda2e2d799099908d6a493319b329535139b665127"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.10"
   event:
     dependency: transitive
     description:
@@ -560,6 +592,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
+  mobile_scanner:
+    dependency: "direct main"
+    description:
+      name: mobile_scanner
+      sha256: c92c26bf2231695b6d3477c8dcf435f51e28f87b1745966b1fe4c47a286171ce
+      url: "https://pub.dev"
+    source: hosted
+    version: "7.2.0"
   msgpack_dart:
     dependency: transitive
     description:
@@ -761,7 +801,7 @@ packages:
     source: hosted
     version: "1.1.1"
   shared_preferences:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: shared_preferences
       sha256: c3025c5534b01739267eb7d76959bbc25a6d10f6988e1c2a3036940133dd10bf

@@ -1,4 +1,4 @@
-﻿import 'dart:developer' show log;
+import 'dart:developer' show log;
 
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
@@ -20,6 +20,8 @@ import 'settings_screen.dart';
 import 'swap_screen.dart';
 
 import '../models/asset_id.dart';
+import '../navigation/premium_page_route.dart';
+import '../widgets/skeleton_shimmer.dart';
 
 export '../models/asset.dart' show Asset, AssetType, kAssets;
 export '../models/asset_id.dart' show AssetId, AssetInfo;
@@ -69,6 +71,8 @@ class HomeScreen extends ConsumerWidget {
     final balances = balancesAsync.valueOrNull;
     final usdFmt = NumberFormat.currency(symbol: r'$', decimalDigits: 2);
     final cryptoFmt = NumberFormat('#,##0.########');
+    final showBalanceSkeleton =
+        balancesAsync.isLoading && !balancesAsync.hasValue;
 
     double portfolioTotal = 0;
     for (final id in AssetId.values) {
@@ -104,23 +108,17 @@ class HomeScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.language_outlined),
             tooltip: s.browserTitle,
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const BrowserScreen()),
-            ),
+            onPressed: () => pushPremium(context, const BrowserScreen()),
           ),
           IconButton(
             icon: const Icon(Icons.swap_horiz_outlined),
             tooltip: s.swap,
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const SwapScreen()),
-            ),
+            onPressed: () => pushPremium(context, const SwapScreen()),
           ),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             tooltip: s.settings,
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const SettingsScreen()),
-            ),
+            onPressed: () => pushPremium(context, const SettingsScreen()),
           ),
           IconButton(
             icon: const Icon(Icons.lock_outline),
@@ -148,12 +146,14 @@ class HomeScreen extends ConsumerWidget {
                 child: _TestnetBanner(s.networkTestnetWarning),
               ),
             SliverToBoxAdapter(
-              child: _PortfolioHeader(
-                total: portfolioTotal,
-                fmt: usdFmt,
-                loading: balancesAsync.isLoading,
-                s: s,
-              ),
+              child: showBalanceSkeleton
+                  ? const HomePortfolioHeaderSkeleton()
+                  : _PortfolioHeader(
+                      total: portfolioTotal,
+                      fmt: usdFmt,
+                      loading: balancesAsync.isLoading,
+                      s: s,
+                    ),
             ),
             if (balancesAsync.hasError)
               SliverToBoxAdapter(
@@ -175,36 +175,41 @@ class HomeScreen extends ConsumerWidget {
               ),
             SliverList(
               delegate: SliverChildListDelegate([
-                ...AssetId.values.map((id) {
-                  final price = prices[id.ticker];
-                  final amount = balanceNum(id, balances);
-                  final usdValue =
-                      (price != null && amount != null) ? price * amount : null;
-                  return _AssetTile(
-                    id: id,
-                    balance: balancesAsync.isLoading
-                        ? null
-                        : balanceStr(id, balances),
-                    usdValue: usdValue,
-                    usdFmt: usdFmt,
-                    cryptoFmt: cryptoFmt,
-                    loading: balancesAsync.isLoading,
-                    priceLoading: pricesAsync.isLoading,
-                    s: s,
-                    onSend: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) =>
-                          SendScreen(assetId: id, address: address(id)),
-                    )),
-                    onReceive: () =>
-                        Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) =>
-                          ReceiveScreen(assetId: id, address: address(id)),
-                    )),
-                    onSwap: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => const SwapScreen(),
-                    )),
-                  );
-                }),
+                if (showBalanceSkeleton)
+                  ...List.generate(
+                    5,
+                    (_) => const HomeAssetTileSkeleton(),
+                  )
+                else
+                  ...AssetId.values.map((id) {
+                    final price = prices[id.ticker];
+                    final amount = balanceNum(id, balances);
+                    final usdValue = (price != null && amount != null)
+                        ? price * amount
+                        : null;
+                    return _AssetTile(
+                      id: id,
+                      balance: balancesAsync.isLoading
+                          ? null
+                          : balanceStr(id, balances),
+                      usdValue: usdValue,
+                      usdFmt: usdFmt,
+                      cryptoFmt: cryptoFmt,
+                      loading: balancesAsync.isLoading,
+                      priceLoading: pricesAsync.isLoading,
+                      s: s,
+                      onSend: () => pushPremium(
+                        context,
+                        SendScreen(assetId: id, address: address(id)),
+                      ),
+                      onReceive: () => pushPremium(
+                        context,
+                        ReceiveScreen(assetId: id, address: address(id)),
+                      ),
+                      onSwap: () =>
+                          pushPremium(context, const SwapScreen()),
+                    );
+                  }),
                 const SizedBox(height: 24),
               ]),
             ),
@@ -252,7 +257,11 @@ class _PortfolioHeader extends StatelessWidget {
               style: const TextStyle(color: Colors.grey, fontSize: 13)),
           const SizedBox(height: 8),
           loading
-              ? const CircularProgressIndicator(strokeWidth: 2)
+              ? const SkeletonPulse(
+                  width: 200,
+                  height: 34,
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                )
               : Text(fmt.format(total),
                   style: const TextStyle(
                       fontSize: 32, fontWeight: FontWeight.bold)),
@@ -328,12 +337,11 @@ class _AssetTile extends StatelessWidget {
                         fontWeight: FontWeight.bold, fontSize: 15)),
                 const SizedBox(height: 2),
                 loading
-                    ? Container(
-                        height: 12,
+                    ? const SkeletonPulse(
                         width: 80,
-                        decoration: BoxDecoration(
-                            color: Colors.white12,
-                            borderRadius: BorderRadius.circular(6)))
+                        height: 12,
+                        borderRadius: BorderRadius.all(Radius.circular(6)),
+                      )
                     : Text('${balance ?? '—'} ${id.ticker}',
                         style:
                             const TextStyle(color: Colors.grey, fontSize: 12)),
@@ -344,12 +352,11 @@ class _AssetTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               (loading || priceLoading)
-                  ? Container(
-                      height: 14,
+                  ? const SkeletonPulse(
                       width: 60,
-                      decoration: BoxDecoration(
-                          color: Colors.white12,
-                          borderRadius: BorderRadius.circular(6)))
+                      height: 14,
+                      borderRadius: BorderRadius.all(Radius.circular(6)),
+                    )
                   : Text(
                       usdValue != null
                           ? usdFmt.format(usdValue)

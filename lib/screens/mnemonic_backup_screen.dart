@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../navigation/premium_page_route.dart';
+import '../widgets/sensitive_screen_guard.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/wallet_provider.dart';
@@ -12,7 +15,8 @@ class MnemonicBackupScreen extends ConsumerWidget {
     final mnemonic = ref.watch(pendingMnemonicProvider) ?? '';
     final words = mnemonic.trim().split(' ');
 
-    return Scaffold(
+    return SensitiveScreenGuard(
+      child: Scaffold(
       appBar: AppBar(
         title: const Text('Back Up Seed Phrase'),
         centerTitle: true,
@@ -102,15 +106,17 @@ class MnemonicBackupScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               ElevatedButton(
-                onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) => MnemonicVerifyScreen(words: words),
-                )),
+                onPressed: () => pushPremium(
+                  context,
+                  MnemonicVerifyScreen(words: words),
+                ),
                 child: const Text("I've Written It Down — Verify"),
               ),
             ],
           ),
         ),
       ),
+    ),
     );
   }
 }

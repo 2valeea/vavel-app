@@ -141,4 +141,40 @@ abstract final class RpcConfig {
   /// Useful when testing Solana/TON/BTC without an Ethereum RPC key.
   static const disableEth =
       bool.fromEnvironment('DISABLE_ETH', defaultValue: false);
+
+  // ── WalletConnect (Reown) ────────────────────────────────────────────────
+
+  /// WalletConnect/Reown Cloud project id used by `reown_walletkit`.
+  ///
+  /// Example:
+  ///   --dart-define=WC_PROJECT_ID=your_reown_project_id
+  static const walletConnectProjectId =
+      String.fromEnvironment('WC_PROJECT_ID', defaultValue: '');
+
+  /// `true` when [walletConnectProjectId] is non-empty and matches a typical Reown ID shape.
+  ///
+  /// Very short or non-alphanumeric values are treated as misconfiguration so the app
+  /// can show a clear setup message instead of failing inside the WalletConnect SDK.
+  static bool get isWalletConnectProjectIdConfigured {
+    final p = walletConnectProjectId.trim();
+    if (p.length < 10 || p.length > 80) return false;
+    return RegExp(r'^[a-zA-Z0-9_-]+$').hasMatch(p);
+  }
+
+  // ── VAVEL (ERC-20 on Ethereum) ───────────────────────────────────────────
+
+  /// Mainnet ERC-20 contract for the VAVEL token (checksummed `0x…` address).
+  ///
+  /// Example:
+  ///   --dart-define=VAVEL_TOKEN_CONTRACT=0xYourContractAddress
+  ///
+  /// When unset or invalid, VAVEL balance reads as zero and transfers are disabled.
+  static const vavelTokenContract =
+      String.fromEnvironment('VAVEL_TOKEN_CONTRACT', defaultValue: '');
+
+  /// `true` when [vavelTokenContract] looks like a valid 20-byte hex address.
+  static bool get vavelTokenConfigured {
+    final a = vavelTokenContract.trim();
+    return a.startsWith('0x') && a.length == 42;
+  }
 }

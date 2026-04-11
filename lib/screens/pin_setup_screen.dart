@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../widgets/sensitive_screen_guard.dart';
 
 class PinSetupScreen extends StatefulWidget {
   final VoidCallback onComplete;
@@ -44,7 +45,8 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return SensitiveScreenGuard(
+      child: Scaffold(
       appBar: AppBar(
         title: Text(_confirming ? 'Confirm PIN' : 'Set PIN'),
         centerTitle: true,
@@ -61,6 +63,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
                 onComplete: _onPinEntered,
               ),
       ),
+    ),
     );
   }
 }

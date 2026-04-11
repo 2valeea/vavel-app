@@ -1,3 +1,4 @@
+import 'package:bitcoin_base/bitcoin_base.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:http/http.dart' as http;
@@ -74,7 +75,14 @@ WalletService createWalletService(
   );
 
   return WalletService(
-      sol: sol, ton: ton, eth: eth, btc: btc, seedStore: seedStore);
+    sol: sol,
+    ton: ton,
+    eth: eth,
+    btc: btc,
+    seedStore: seedStore,
+    ethereumChainId: isTestnet ? 11155111 : 1,
+    bitcoinNetwork: isTestnet ? BitcoinNetwork.testnet : BitcoinNetwork.mainnet,
+  );
 }
 
 void _validateConfig() {

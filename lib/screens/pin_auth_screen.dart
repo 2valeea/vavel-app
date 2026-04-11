@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/auth_service.dart';
 import '../providers/wallet_provider.dart';
+import '../widgets/sensitive_screen_guard.dart';
 import 'pin_setup_screen.dart' show PinPad;
 
 class PinAuthScreen extends ConsumerStatefulWidget {
@@ -68,7 +69,8 @@ class _PinAuthScreenState extends ConsumerState<PinAuthScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return SensitiveScreenGuard(
+      child: Scaffold(
       body: SafeArea(
         child: Stack(
           children: [
@@ -131,6 +133,7 @@ class _PinAuthScreenState extends ConsumerState<PinAuthScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 }

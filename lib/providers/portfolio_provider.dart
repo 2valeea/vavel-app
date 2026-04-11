@@ -5,6 +5,8 @@ import '../bitcoin/bitcoin_adapter.dart' show BitcoinProvider;
 import '../config.dart' show RpcConfig;
 import '../ethereum/ethereum_adapter.dart' show EthereumProvider;
 import '../models/asset.dart' show AssetBalance;
+import '../models/ethereum_gas_fees.dart'
+    show EthereumMaxFeeArgs, EthereumNetworkGasFees;
 import '../models/fee_estimate.dart' show FeeEstimate;
 import '../services/portfolio_service.dart';
 import '../services/fee_service.dart';
@@ -82,3 +84,22 @@ final ethFeeProvider = FutureProvider.family<FeeEstimate, int>((ref, gasLimit) {
       .read(feeServiceProvider)
       .estimateEthereumFeeUsd(gasLimit: gasLimit);
 });
+
+/// Live slow / standard / fast gas (or legacy) for send UI.
+final ethereumNetworkGasFeesProvider =
+    FutureProvider<EthereumNetworkGasFees>((ref) async {
+  final eth = ref.watch(ethNetworkProvider);
+  if (eth.isDisabled) return EthereumNetworkGasFees.disabled();
+  return eth.fetchNetworkGasFees();
+});
+
+/// Max total fee in wei for chosen [maxFeePerGas] and [gasLimit].
+final ethMaxTotalFeeProvider =
+    FutureProvider.family<FeeEstimate, EthereumMaxFeeArgs>(
+  (ref, args) {
+    return ref.read(feeServiceProvider).estimateEthereumMaxFeeUsd(
+          maxFeePerGas: args.maxFeePerGas,
+          gasLimit: args.gasLimit,
+        );
+  },
+);

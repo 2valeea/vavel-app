@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../navigation/premium_page_route.dart';
 import '../providers/locale_provider.dart';
 import '../providers/network_provider.dart';
 import '../services/auth_service.dart';
+import 'address_book_screen.dart';
 import 'history_screen.dart';
+import 'legal_screens.dart';
 import 'pin_setup_screen.dart';
 import 'support_screen.dart';
 
@@ -121,10 +124,9 @@ class SettingsScreen extends ConsumerWidget {
             iconColor: const Color(0xFF2979FF),
             label: s.changePin,
             description: s.changePinDesc,
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => PinSetupScreen(onComplete: () {}),
-              ),
+            onTap: () => pushPremium(
+              context,
+              PinSetupScreen(onComplete: () {}),
             ),
           ),
           if (biometricAvailable) ...[
@@ -171,9 +173,15 @@ class SettingsScreen extends ConsumerWidget {
             iconColor: const Color(0xFF9945FF),
             label: s.historyViewAll,
             description: s.history,
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const HistoryScreen()),
-            ),
+            onTap: () => pushPremium(context, const HistoryScreen()),
+          ),
+          const SizedBox(height: 8),
+          _NavTile(
+            icon: Icons.contact_mail_outlined,
+            iconColor: const Color(0xFF26A69A),
+            label: 'Address book',
+            description: 'Saved contacts for sending',
+            onTap: () => pushPremium(context, const AddressBookScreen()),
           ),
 
           // ── Support ───────────────────────────────────────────────────
@@ -185,9 +193,27 @@ class SettingsScreen extends ConsumerWidget {
             iconColor: const Color(0xFF2979FF),
             label: s.supportTitle,
             description: s.supportDesc,
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const SupportScreen()),
-            ),
+            onTap: () => pushPremium(context, const SupportScreen()),
+          ),
+
+          // ── Legal ─────────────────────────────────────────────────────
+          const SizedBox(height: 24),
+          _SectionHeader(s.legalSection),
+          const SizedBox(height: 8),
+          _NavTile(
+            icon: Icons.article_outlined,
+            iconColor: const Color(0xFF90CAF9),
+            label: s.legalTermsTitle,
+            description: s.legalTermsDesc,
+            onTap: () => pushPremium(context, const TermsOfServiceScreen()),
+          ),
+          const SizedBox(height: 6),
+          _NavTile(
+            icon: Icons.privacy_tip_outlined,
+            iconColor: const Color(0xFFCE93D8),
+            label: s.legalPrivacyTitle,
+            description: s.legalPrivacyDesc,
+            onTap: () => pushPremium(context, const PrivacyPolicyScreen()),
           ),
 
           // ── Network ───────────────────────────────────────────────────

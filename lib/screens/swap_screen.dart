@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../models/asset_id.dart';
+import '../widgets/skeleton_shimmer.dart';
 import '../providers/price_provider.dart';
 import '../providers/locale_provider.dart';
 
@@ -46,7 +47,7 @@ class _SwapScreenState extends ConsumerState<SwapScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(s.swapTitle)),
       body: pricesAsync.when(
-        loading: () => Center(child: Text(s.priceLoading)),
+        loading: () => const SwapScreenSkeleton(),
         error: (_, __) => Center(child: Text(s.swapPricesMissing)),
         data: (prices) => _buildBody(context, s, prices),
       ),

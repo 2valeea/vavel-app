@@ -35,6 +35,16 @@ class VavelApp extends ConsumerWidget {
           secondary: Color(0xFF2979FF),
           surface: Color(0xFF1A2A3E),
         ),
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: ZoomPageTransitionsBuilder(),
+            TargetPlatform.fuchsia: ZoomPageTransitionsBuilder(),
+            TargetPlatform.linux: ZoomPageTransitionsBuilder(),
+            TargetPlatform.windows: ZoomPageTransitionsBuilder(),
+            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+          },
+        ),
         appBarTheme: const AppBarTheme(
           backgroundColor: Color(0xFF0D1B2E),
           elevation: 0,
@@ -61,11 +71,33 @@ class _AppRouter extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final route = ref.watch(appRouteProvider);
-    return switch (route) {
-      AppRoute.setup => const SetupScreen(),
-      AppRoute.pinAuth => const PinAuthScreen(),
-      AppRoute.home => const HomeScreen(),
-      AppRoute.dappConnect => const DappConnectScreen(),
-    };
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 400),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      transitionBuilder: (child, animation) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+        return FadeTransition(
+          opacity: curved,
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.988, end: 1).animate(curved),
+            child: child,
+          ),
+        );
+      },
+      child: KeyedSubtree(
+        key: ValueKey<AppRoute>(route),
+        child: switch (route) {
+          AppRoute.setup => const SetupScreen(),
+          AppRoute.pinAuth => const PinAuthScreen(),
+          AppRoute.home => const HomeScreen(),
+          AppRoute.dappConnect => const DappConnectScreen(),
+        },
+      ),
+    );
   }
 }

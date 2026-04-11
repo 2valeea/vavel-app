@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../navigation/premium_page_route.dart';
+import '../widgets/sensitive_screen_guard.dart';
 import '../providers/wallet_provider.dart';
 import 'pin_setup_screen.dart';
 
@@ -48,16 +50,16 @@ class _MnemonicVerifyScreenState extends ConsumerState<MnemonicVerifyScreen> {
     // Capture the notifier before navigation so the closure doesn't reference
     // 'ref' after this widget is disposed by pushReplacement.
     final routeNotifier = ref.read(appRouteProvider.notifier);
-    await Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => PinSetupScreen(onComplete: routeNotifier.goHome),
-      ),
+    await pushReplacementPremium(
+      context,
+      PinSetupScreen(onComplete: routeNotifier.goHome),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return SensitiveScreenGuard(
+      child: Scaffold(
       appBar: AppBar(
         title: const Text('Verify Seed Phrase'),
         centerTitle: true,
@@ -141,6 +143,7 @@ class _MnemonicVerifyScreenState extends ConsumerState<MnemonicVerifyScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 }
