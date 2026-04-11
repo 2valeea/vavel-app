@@ -5,8 +5,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../navigation/premium_page_route.dart';
 import '../providers/locale_provider.dart';
 import '../providers/network_provider.dart';
+import '../providers/wallet_provider.dart';
 import '../services/auth_service.dart';
 import 'address_book_screen.dart';
+import 'duress_pin_setup_screen.dart';
 import 'history_screen.dart';
 import 'legal_screens.dart';
 import 'pin_setup_screen.dart';
@@ -79,6 +81,8 @@ class SettingsScreen extends ConsumerWidget {
     final biometricAvailable =
         ref.watch(biometricAvailableProvider).valueOrNull ?? false;
     final biometricEnabled = ref.watch(biometricEnabledProvider);
+    final duressConfigured =
+        ref.watch(duressPinConfiguredProvider).valueOrNull ?? false;
 
     return Scaffold(
       appBar: AppBar(
@@ -124,11 +128,79 @@ class SettingsScreen extends ConsumerWidget {
             iconColor: const Color(0xFF2979FF),
             label: s.changePin,
             description: s.changePinDesc,
-            onTap: () => pushPremium(
-              context,
-              PinSetupScreen(onComplete: () {}),
-            ),
+            onTap: () {
+              if (ref.read(duressModeProvider)) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(s.duressSettingsBlocked)),
+                );
+                return;
+              }
+              pushPremium(
+                context,
+                PinSetupScreen(onComplete: () {}),
+              );
+            },
           ),
+          const SizedBox(height: 6),
+          _NavTile(
+            icon: Icons.emergency_outlined,
+            iconColor: Colors.deepOrange,
+            label: s.panicPin,
+            description: s.panicPinDesc,
+            onTap: () async {
+              if (ref.read(duressModeProvider)) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(s.duressSettingsBlocked)),
+                );
+                return;
+              }
+              final ok = await pushPremium<bool>(
+                context,
+                const DuressPinSetupScreen(),
+              );
+              if (ok == true && context.mounted) {
+                ref.invalidate(duressPinConfiguredProvider);
+              }
+            },
+          ),
+          if (duressConfigured) ...[
+            const SizedBox(height: 6),
+            _NavTile(
+              icon: Icons.delete_outline,
+              iconColor: Colors.redAccent,
+              label: s.panicPinRemove,
+              description: s.panicPinRemoveConfirm,
+              onTap: () async {
+                if (ref.read(duressModeProvider)) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(s.duressSettingsBlocked)),
+                  );
+                  return;
+                }
+                final go = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: Text(s.panicPinRemove),
+                    content: Text(s.panicPinRemoveConfirm),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: const Text('Cancel'),
+                      ),
+                      FilledButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        child: const Text('Remove'),
+                      ),
+                    ],
+                  ),
+                );
+                if (go == true && context.mounted) {
+                  await AuthService.clearDuressPin();
+                  ref.invalidate(duressPinConfiguredProvider);
+                }
+              },
+            ),
+          ],
           if (biometricAvailable) ...[
             const SizedBox(height: 6),
             _ToggleTile(

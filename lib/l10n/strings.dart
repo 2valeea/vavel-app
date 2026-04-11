@@ -164,6 +164,62 @@ class S {
       et: 'Uuendage oma 6-kohaline PIN',
       pt: 'Atualize o seu PIN de segurança de 6 dígitos',
       uk: 'Оновіть 6-значний PIN-код безпеки');
+
+  String get panicPin => _t('Panic PIN',
+      ru: 'Паник PIN',
+      de: 'Panik-PIN',
+      da: 'Panik-PIN',
+      et: 'Paanika PIN',
+      pt: 'PIN de pânico',
+      uk: 'Панічний PIN');
+  String get panicPinDesc => _t(
+      'If forced to unlock, use this PIN for a hidden, limited wallet',
+      ru: 'При принуждении используйте этот PIN — откроется ограниченный кошелёк',
+      de: 'Bei Zwang: dieser PIN zeigt eine eingeschränkte Wallet',
+      da: 'Ved tvang: denne PIN viser en begrænset tegnebog',
+      et: 'Sunni korral avab see PIN piiratud rahakoti',
+      pt: 'Se forçado a desbloquear, use este PIN para carteira limitada',
+      uk: 'Якщо змушують розблокувати — цей PIN покаже обмежений гаманець');
+  String get panicPinRemove => _t('Remove panic PIN',
+      ru: 'Удалить паник PIN',
+      de: 'Panik-PIN entfernen',
+      da: 'Fjern panik-PIN',
+      et: 'Eemalda paanika PIN',
+      pt: 'Remover PIN de pânico',
+      uk: 'Видалити панічний PIN');
+  String get panicPinRemoveConfirm => _t(
+      'Remove your panic PIN? You can set it again later in Security.',
+      ru: 'Удалить паник PIN? Позже можно настроить снова в разделе «Безопасность».',
+      de: 'Panik-PIN entfernen? Sie können sie später unter Sicherheit neu anlegen.',
+      da: 'Fjern panik-PIN? Du kan tilføje den igen under Sikkerhed.',
+      et: 'Eemaldada paanika PIN? Saate hiljem uuesti seadistada.',
+      pt: 'Remover o PIN de pânico? Pode configurá-lo de novo em Segurança.',
+      uk: 'Видалити панічний PIN? Пізніше можна знову налаштувати в «Безпека».');
+  String get duressModeBanner => _t(
+      'Panic mode — portfolio hidden; send, receive, swap & dApps are disabled.',
+      ru: 'Режим паники — портфель скрыт; отправка, приём, обмен и dApp отключены.',
+      de: 'Panikmodus — Portfolio verborgen; Senden, Empfangen, Swap & dApps aus.',
+      da: 'Paniktilstand — portefølje skjult; send, modtag, swap og dApps er slået fra.',
+      et: 'Paanikarežiim — portfell peidetud; saatmine, vastuvõtt, vahetus ja dAppid keelatud.',
+      pt: 'Modo pânico — carteira oculta; enviar, receber, swap e dApps desativados.',
+      uk: 'Панічний режим — портфель приховано; надсилання, прийом, обмін і dApp вимкнено.');
+  String get duressActionBlocked => _t(
+      'Unavailable in panic mode. Lock the wallet and sign in with your main PIN.',
+      ru: 'Недоступно в режиме паники. Заблокируйте кошелёк и войдите основным PIN.',
+      de: 'Im Panikmodus nicht verfügbar. Sperren und mit Haupt-PIN anmelden.',
+      da: 'Ikke tilgængelig i paniktilstand. Lås og log ind med hoved-PIN.',
+      et: 'Paanikarežiimis pole saadaval. Lukusta ja logi sisse põhi-PIN-iga.',
+      pt: 'Indisponível em modo pânico. Bloqueie e entre com o PIN principal.',
+      uk: 'Недоступно в панічному режимі. Заблокуйте та увійдіть основним PIN.');
+  String get duressSettingsBlocked => _t(
+      'Quit panic mode: lock the wallet, then unlock with your main PIN.',
+      ru: 'Выйти из режима паники: заблокируйте кошелёк и войдите основным PIN.',
+      de: 'Panikmodus beenden: Wallet sperren, dann mit Haupt-PIN entsperren.',
+      da: 'Afslut paniktilstand: lås tegnebogen og lås op med hoved-PIN.',
+      et: 'Paanikarežiimist väljumine: lukusta rahakott ja ava põhi-PIN-iga.',
+      pt: 'Sair do modo pânico: bloqueie e desbloqueie com o PIN principal.',
+      uk: 'Вийти з панічного режиму: заблокуйте гаманець і розблокуйте основним PIN.');
+
   String get biometrics => _t('Biometric unlock',
       ru: 'Биометрический вход',
       de: 'Biometrische Entsperrung',

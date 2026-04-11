@@ -2,6 +2,8 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        // walletconnect_pay → com.github.reown-com.yttrium:yttrium-wcpay (Reown / WalletConnect Pay)
+        maven { url = uri("https://jitpack.io") }
     }
 }
 

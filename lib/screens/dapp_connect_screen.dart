@@ -57,6 +57,12 @@ class _DappConnectScreenState extends ConsumerState<DappConnectScreen>
   }
 
   Future<void> _bootstrap() async {
+    if (ref.read(duressModeProvider)) {
+      if (mounted) {
+        ref.read(appRouteProvider.notifier).goHome(duress: true);
+      }
+      return;
+    }
     try {
       final addresses = await ref.read(walletAddressesProvider.future);
       final chainId = ref.read(walletServiceProvider).ethereumChainId;

@@ -177,4 +177,20 @@ abstract final class RpcConfig {
     final a = vavelTokenContract.trim();
     return a.startsWith('0x') && a.length == 42;
   }
+
+  // ── Push (FCM token → your backend) ─────────────────────────────────────
+
+  /// Full HTTPS URL for registering the device FCM token (POST JSON body).
+  ///
+  /// Example:
+  ///   --dart-define=PUSH_REGISTER_URL=https://api.vavel.app/v1/devices/fcm
+  ///
+  /// Body: `{ "walletAddress": "0x…", "token": "…", "platform": "android" }`
+  /// When empty, the app still receives FCM locally but does not call a server.
+  static const pushRegisterUrl =
+      String.fromEnvironment('PUSH_REGISTER_URL', defaultValue: '');
+
+  /// Optional `Authorization: Bearer …` for [pushRegisterUrl].
+  static const pushRegisterBearer =
+      String.fromEnvironment('PUSH_REGISTER_BEARER', defaultValue: '');
 }

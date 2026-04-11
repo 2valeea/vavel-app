@@ -1,6 +1,8 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'push/push_notification_service.dart';
 import 'providers/wallet_provider.dart';
 import 'providers/locale_provider.dart';
 import 'screens/setup_screen.dart';
@@ -8,7 +10,10 @@ import 'screens/pin_auth_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/dapp_connect_screen.dart';
 
-void main() => runApp(const ProviderScope(child: VavelApp()));
+void main() {
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  runApp(const ProviderScope(child: VavelApp()));
+}
 
 class VavelApp extends ConsumerWidget {
   const VavelApp({super.key});

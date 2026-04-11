@@ -52,7 +52,7 @@ class _MnemonicVerifyScreenState extends ConsumerState<MnemonicVerifyScreen> {
     final routeNotifier = ref.read(appRouteProvider.notifier);
     await pushReplacementPremium(
       context,
-      PinSetupScreen(onComplete: routeNotifier.goHome),
+      PinSetupScreen(onComplete: () => routeNotifier.goHome()),
     );
   }
 

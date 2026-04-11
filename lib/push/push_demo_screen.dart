@@ -25,10 +25,7 @@ class _PushDemoScreenState extends State<PushDemoScreen> {
   }
 
   Future<void> _initPush() async {
-    await PushNotificationService.initialize(
-      walletAddress: 'demo-wallet-address',
-      jwtToken: 'demo-jwt-token',
-    );
+    await PushNotificationService.debugInitializeDemo();
     _token = await FirebaseMessaging.instance.getToken();
     setState(() {});
   }

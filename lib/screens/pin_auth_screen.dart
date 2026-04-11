@@ -57,9 +57,14 @@ class _PinAuthScreenState extends ConsumerState<PinAuthScreen> {
       if (!mounted) return;
       if (ok) {
         ref.read(appRouteProvider.notifier).goHome();
-      } else {
-        setState(() => _error = 'Incorrect PIN. Try again.');
+        return;
       }
+      if (await AuthService.verifyDuressPin(pin)) {
+        if (!mounted) return;
+        ref.read(appRouteProvider.notifier).goHome(duress: true);
+        return;
+      }
+      setState(() => _error = 'Incorrect PIN. Try again.');
     } catch (e) {
       if (mounted) setState(() => _error = 'Error: ${e.toString()}');
     } finally {

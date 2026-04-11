@@ -10,8 +10,16 @@ plugins {
 
 val keyPropertiesFile = rootProject.file("key.properties")
 val keyProperties = Properties()
-if (keyPropertiesFile.exists()) {
+val hasReleaseKeystore = keyPropertiesFile.exists()
+if (hasReleaseKeystore) {
     keyProperties.load(FileInputStream(keyPropertiesFile))
+}
+
+// Firebase Android config: add android/app/google-services.json from Firebase Console,
+// then sync. Build works without it (plugin not applied).
+val googleServicesJson = file("google-services.json")
+if (googleServicesJson.exists()) {
+    apply(plugin = "com.google.gms.google-services")
 }
 
 android {
@@ -29,11 +37,13 @@ android {
     }
 
     signingConfigs {
-        create("release") {
-            keyAlias = keyProperties["keyAlias"] as String
-            keyPassword = keyProperties["keyPassword"] as String
-            storeFile = keyProperties["storeFile"]?.let { file(it as String) }
-            storePassword = keyProperties["storePassword"] as String
+        if (hasReleaseKeystore) {
+            create("release") {
+                keyAlias = keyProperties["keyAlias"] as String
+                keyPassword = keyProperties["keyPassword"] as String
+                storeFile = keyProperties["storeFile"]?.let { file(it as String) }
+                storePassword = keyProperties["storePassword"] as String
+            }
         }
     }
 
@@ -47,7 +57,15 @@ android {
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
+            if (hasReleaseKeystore) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 }

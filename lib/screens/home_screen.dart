@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../providers/wallet_provider.dart';
+import '../push/push_notification_service.dart';
 import '../providers/balance_provider.dart';
 import '../providers/price_provider.dart';
 import '../providers/locale_provider.dart';
@@ -26,17 +27,38 @@ import '../widgets/skeleton_shimmer.dart';
 export '../models/asset.dart' show Asset, AssetType, kAssets;
 export '../models/asset_id.dart' show AssetId, AssetInfo;
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      PushNotificationService.maybeInitializeAfterUnlock(ref);
+    });
+  }
+
+  void _needMainPinSnack(S s) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(s.duressActionBlocked)),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final balancesAsync = ref.watch(balanceProvider);
     final pricesAsync = ref.watch(priceProvider);
     final addressesAsync = ref.watch(walletAddressesProvider);
     final s = ref.watch(stringsProvider);
     final network = ref.watch(networkProvider);
     final isTestnet = network == AppNetwork.testnet;
+    final duress = ref.watch(duressModeProvider);
 
     final prices = pricesAsync.valueOrNull ?? {};
 
@@ -75,10 +97,12 @@ class HomeScreen extends ConsumerWidget {
         balancesAsync.isLoading && !balancesAsync.hasValue;
 
     double portfolioTotal = 0;
-    for (final id in AssetId.values) {
-      final price = prices[id.ticker] ?? 0;
-      final amount = balanceNum(id, balances) ?? 0;
-      portfolioTotal += price * amount;
+    if (!duress) {
+      for (final id in AssetId.values) {
+        final price = prices[id.ticker] ?? 0;
+        final amount = balanceNum(id, balances) ?? 0;
+        portfolioTotal += price * amount;
+      }
     }
 
     return Scaffold(
@@ -108,12 +132,16 @@ class HomeScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.language_outlined),
             tooltip: s.browserTitle,
-            onPressed: () => pushPremium(context, const BrowserScreen()),
+            onPressed: duress
+                ? () => _needMainPinSnack(s)
+                : () => pushPremium(context, const BrowserScreen()),
           ),
           IconButton(
             icon: const Icon(Icons.swap_horiz_outlined),
             tooltip: s.swap,
-            onPressed: () => pushPremium(context, const SwapScreen()),
+            onPressed: duress
+                ? () => _needMainPinSnack(s)
+                : () => pushPremium(context, const SwapScreen()),
           ),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
@@ -128,8 +156,9 @@ class HomeScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.link),
             tooltip: 'dApp Connect',
-            onPressed: () =>
-                ref.read(appRouteProvider.notifier).goDappConnect(),
+            onPressed: duress
+                ? () => _needMainPinSnack(s)
+                : () => ref.read(appRouteProvider.notifier).goDappConnect(),
           ),
         ],
       ),
@@ -145,13 +174,17 @@ class HomeScreen extends ConsumerWidget {
               SliverToBoxAdapter(
                 child: _TestnetBanner(s.networkTestnetWarning),
               ),
+            if (duress)
+              SliverToBoxAdapter(
+                child: _DuressBanner(message: s.duressModeBanner),
+              ),
             SliverToBoxAdapter(
               child: showBalanceSkeleton
                   ? const HomePortfolioHeaderSkeleton()
                   : _PortfolioHeader(
                       total: portfolioTotal,
                       fmt: usdFmt,
-                      loading: balancesAsync.isLoading,
+                      loading: balancesAsync.isLoading && !duress,
                       s: s,
                     ),
             ),
@@ -183,21 +216,24 @@ class HomeScreen extends ConsumerWidget {
                 else
                   ...AssetId.values.map((id) {
                     final price = prices[id.ticker];
-                    final amount = balanceNum(id, balances);
-                    final usdValue = (price != null && amount != null)
-                        ? price * amount
-                        : null;
+                    final amount = duress ? 0.0 : balanceNum(id, balances);
+                    final usdValue = duress
+                        ? 0.0
+                        : (price != null && amount != null)
+                            ? price * amount
+                            : null;
                     return _AssetTile(
                       id: id,
-                      balance: balancesAsync.isLoading
+                      balance: balancesAsync.isLoading && !duress
                           ? null
-                          : balanceStr(id, balances),
+                          : (duress ? '0' : balanceStr(id, balances)),
                       usdValue: usdValue,
                       usdFmt: usdFmt,
                       cryptoFmt: cryptoFmt,
-                      loading: balancesAsync.isLoading,
-                      priceLoading: pricesAsync.isLoading,
+                      loading: balancesAsync.isLoading && !duress,
+                      priceLoading: pricesAsync.isLoading && !duress,
                       s: s,
+                      actionsEnabled: !duress,
                       onSend: () => pushPremium(
                         context,
                         SendScreen(assetId: id, address: address(id)),
@@ -208,6 +244,7 @@ class HomeScreen extends ConsumerWidget {
                       ),
                       onSwap: () =>
                           pushPremium(context, const SwapScreen()),
+                      onBlocked: () => _needMainPinSnack(s),
                     );
                   }),
                 const SizedBox(height: 24),
@@ -223,6 +260,42 @@ class HomeScreen extends ConsumerWidget {
 String _formatBalanceError(Object? error) {
   if (error is NonJsonRpcResponse) return 'Balance error: ${error.userMessage}';
   return 'Balance error: $error';
+}
+
+class _DuressBanner extends StatelessWidget {
+  final String message;
+
+  const _DuressBanner({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.deepOrange.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.deepOrange.withValues(alpha: 0.45)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.shield_outlined, color: Colors.deepOrange, size: 22),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: Colors.deepOrange,
+                fontSize: 13,
+                height: 1.3,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _PortfolioHeader extends StatelessWidget {
@@ -283,9 +356,11 @@ class _AssetTile extends StatelessWidget {
   final bool loading;
   final bool priceLoading;
   final S s;
+  final bool actionsEnabled;
   final VoidCallback onSend;
   final VoidCallback onReceive;
   final VoidCallback onSwap;
+  final VoidCallback onBlocked;
 
   const _AssetTile({
     required this.id,
@@ -296,9 +371,11 @@ class _AssetTile extends StatelessWidget {
     required this.loading,
     required this.priceLoading,
     required this.s,
+    required this.actionsEnabled,
     required this.onSend,
     required this.onReceive,
     required this.onSwap,
+    required this.onBlocked,
   });
 
   @override
@@ -369,19 +446,25 @@ class _AssetTile extends StatelessWidget {
                     label: s.send,
                     icon: Icons.arrow_upward,
                     color: id.color,
-                    onTap: onSend),
+                    enabled: actionsEnabled,
+                    onTap: onSend,
+                    onBlocked: onBlocked),
                 const SizedBox(width: 6),
                 _ActionChip(
                     label: s.receive,
                     icon: Icons.arrow_downward,
                     color: id.color,
-                    onTap: onReceive),
+                    enabled: actionsEnabled,
+                    onTap: onReceive,
+                    onBlocked: onBlocked),
                 const SizedBox(width: 6),
                 _ActionChip(
                     label: s.swap,
                     icon: Icons.swap_horiz,
                     color: id.color,
-                    onTap: onSwap),
+                    enabled: actionsEnabled,
+                    onTap: onSwap,
+                    onBlocked: onBlocked),
               ]),
             ],
           ),
@@ -395,30 +478,40 @@ class _ActionChip extends StatelessWidget {
   final String label;
   final IconData icon;
   final Color color;
+  final bool enabled;
   final VoidCallback onTap;
-  const _ActionChip(
-      {required this.label,
-      required this.icon,
-      required this.color,
-      required this.onTap});
+  final VoidCallback onBlocked;
+
+  const _ActionChip({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.enabled,
+    required this.onTap,
+    required this.onBlocked,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final effectiveColor =
+        enabled ? color : color.withValues(alpha: 0.35);
     return GestureDetector(
-      onTap: onTap,
+      onTap: enabled ? onTap : onBlocked,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.15),
+            color: effectiveColor.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(20)),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 12, color: color),
+            Icon(icon, size: 12, color: effectiveColor),
             const SizedBox(width: 4),
             Text(label,
                 style: TextStyle(
-                    color: color, fontSize: 11, fontWeight: FontWeight.w600)),
+                    color: effectiveColor,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600)),
           ],
         ),
       ),
