@@ -160,6 +160,7 @@ Future<void> _openLegalFeesHub(BuildContext context, WidgetRef ref) async {
               );
               if (go == true && context.mounted) {
                 await clearServiceFeeConsent();
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text(s.legalFeesResetDone)),
                 );
