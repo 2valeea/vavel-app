@@ -18,13 +18,8 @@ migrate_working_dir/
 *.iws
 .idea/
 
-# VS Code launch config may contain API keys — never commit it
-.vscode/launch.json
-
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+# VS Code — local editor settings, launch configs, and tasks (do not commit)
+.vscode/
 
 # Flutter/Dart/Pub related
 **/doc/api/
