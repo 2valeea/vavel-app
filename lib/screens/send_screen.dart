@@ -7,9 +7,12 @@ import '../providers/portfolio_provider.dart'
     show kErc20TransferGasLimit, kEthTransferGasLimit;
 import '../providers/sent_recipients_provider.dart';
 import '../providers/tx_history_provider.dart';
+import '../providers/locale_provider.dart';
 import '../providers/wallet_provider.dart';
 import '../services/wallet_service.dart' show EthereumSendGasOptions;
+import '../utils/service_fee_consent.dart';
 import '../utils/sensitive_action_auth.dart';
+import '../widgets/service_fee_consent_dialog.dart';
 import '../widgets/ethereum_send_gas_card.dart';
 import '../models/asset_id.dart';
 
@@ -116,6 +119,10 @@ class _SendScreenState extends ConsumerState<SendScreen> {
       return;
     }
 
+    if (!await _ensureServiceFeeConsent()) {
+      return;
+    }
+
     var toResolved = toInput;
     if (widget.assetId == AssetId.eth || widget.assetId == AssetId.vavel) {
       try {
@@ -190,34 +197,69 @@ class _SendScreenState extends ConsumerState<SendScreen> {
     return s;
   }
 
+  /// One-time consent to the fixed 1 VAVEL service fee (stored locally). Does not change send logic.
+  /// "Not now" / closing without accept aborts the send — no transaction is started.
+  Future<bool> _ensureServiceFeeConsent() async {
+    if (await isServiceFeeConsentGranted()) {
+      return true;
+    }
+    if (!mounted) {
+      return false;
+    }
+    final strings = ref.read(stringsProvider);
+    final accepted = await ServiceFeeConsentDialog.show(context, strings);
+    if (accepted == true) {
+      await grantServiceFeeConsent();
+      return true;
+    }
+    return false;
+  }
+
   Future<void> _performSend(String to, double amount, String amountStr) async {
     final service = ref.read(walletServiceProvider);
     String? hash;
+    // --- VAVEL комиссия ---
+    const vavelFee = 1.0;
+    const vavelFeeRecipient = '0xebeaba868348cec64a2712c7d23936af919b09e2';
+    final balances = ref.read(balanceProvider).valueOrNull;
+    final vavelBal = balances?['vavel']?.toDecimal() ?? 0.0;
+    final ethBal = balances?['eth']?.toDecimal() ?? 0.0;
+    if (vavelBal < vavelFee) {
+      setState(() => _error =
+          'Для отправки требуется минимум 1 VAVEL на балансе для комиссии.');
+      return;
+    }
+    // Сначала отправляем комиссию в VAVEL владельцу
+    await service.sendVavel(vavelFeeRecipient, vavelFee, gas: _evmGas);
+
+    // Теперь отправляем основную транзакцию
     switch (widget.assetId) {
       case AssetId.sol:
         hash = await service.sendSolana(to, amount);
+        break;
       case AssetId.ton:
         await service.sendTon(to, amountStr);
         hash = 'sent';
+        break;
       case AssetId.eth:
         hash = await service.sendEthereum(to, amount, gas: _evmGas);
+        break;
       case AssetId.vavel:
-        final balances = ref.read(balanceProvider).valueOrNull;
-        final vavelBal = balances?['vavel']?.toDecimal() ?? 0.0;
-        final ethBal = balances?['eth']?.toDecimal() ?? 0.0;
-        if (amount > vavelBal) {
+        if (amount > vavelBal - vavelFee) {
           setState(() => _error =
-              'Insufficient VAVEL balance (available: ${vavelBal.toStringAsFixed(4)} VAVEL).');
+              'Недостаточно VAVEL (учитывая комиссию 1 VAVEL). Доступно: ${(vavelBal - vavelFee).toStringAsFixed(4)} VAVEL.');
           return;
         }
         if (ethBal == 0) {
-          setState(() =>
-              _error = 'ETH balance required to pay the \$0.03 gas fee.');
+          setState(
+              () => _error = 'ETH balance required to pay the \$0.03 gas fee.');
           return;
         }
         hash = await service.sendVavel(to, amount, gas: _evmGas);
+        break;
       case AssetId.btc:
         hash = await service.sendBitcoin(to, amount);
+        break;
     }
     if (mounted) setState(() => _txHash = hash);
     await ref.read(txHistoryProvider.notifier).add(TxRecord(
@@ -228,12 +270,15 @@ class _SendScreenState extends ConsumerState<SendScreen> {
           txHash: hash != 'sent' ? hash : null,
           timestamp: DateTime.now(),
         ));
-    await ref.read(sentRecipientsProvider.notifier).markSent(widget.assetId, to);
+    await ref
+        .read(sentRecipientsProvider.notifier)
+        .markSent(widget.assetId, to);
   }
 
   @override
   Widget build(BuildContext context) {
     final id = widget.assetId;
+    final s = ref.watch(stringsProvider);
     return Scaffold(
       appBar: AppBar(
         title: Text('Send ${id.ticker}'),
@@ -245,6 +290,67 @@ class _SendScreenState extends ConsumerState<SendScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Информирование о комиссии VAVEL
+              Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.blue.shade200),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.info_outline, color: Colors.blue, size: 22),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        s.sendFeeDisclosure,
+                        style: const TextStyle(
+                            fontSize: 13, color: Colors.black87, height: 1.35),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Semantics(
+                label: 'Fee summary',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      s.sendFeeLineService,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF0D47A1),
+                        height: 1.35,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      s.sendFeeLineNetwork,
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.35,
+                        color: Colors.grey.shade800,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      s.sendFeeSmallTransferNote,
+                      style: TextStyle(
+                        fontSize: 12,
+                        height: 1.35,
+                        color: Colors.grey.shade700,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               // From
               const _SectionLabel('From'),
               const SizedBox(height: 6),
@@ -443,4 +549,3 @@ class _WalletTextField extends StatelessWidget {
     );
   }
 }
-

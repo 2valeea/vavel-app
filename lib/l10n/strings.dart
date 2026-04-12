@@ -483,6 +483,74 @@ class S {
       pt: 'Como tratamos os seus dados',
       uk: 'Як ми обробляємо ваші дані');
 
+  /// In-app disclosure on Send: 1 VAVEL service fee vs network fees (English default for stores).
+  String get sendFeeDisclosure => _t(
+      'Before your main transfer, the App submits a separate EVM transaction that transfers exactly 1 VAVEL to the '
+      'operator wallet 0xebeaba868348cec64a2712c7d23936af919b09e2. This is a fixed in-app service fee for using the send '
+      'feature. It is separate from blockchain network fees (for example gas) paid to validators or miners.',
+      ru: 'Перед основной отправкой приложение инициирует отдельную EVM-транзакцию: перевод 1 VAVEL на адрес оператора '
+          '0xebeaba868348cec64a2712c7d23936af919b09e2. Это фиксированный сервисный сбор приложения за использование '
+          'отправки. Он отделён от сетевой комиссии блокчейна (например газа), выплачиваемой валидаторам или майнерам.');
+
+  /// Two-line fee summary on Send (clarity for users and store reviewers).
+  String get sendFeeLineService => _t(
+      'Service fee (app): 1 VAVEL — fixed; paid to the operator in a separate EVM transaction before your transfer.',
+      ru: 'Сервисный сбор (приложение): 1 VAVEL — фиксировано; отдельная EVM-транзакция оператору перед вашей отправкой.');
+  String get sendFeeLineNetwork => _t(
+      'Network fee: set by the destination blockchain and paid to validators or miners — not to the app operator.',
+      ru: 'Сетевая комиссия: определяется сетью назначения и идёт валидаторам/майнерам — не оператору приложения.');
+  String get sendFeeSmallTransferNote => _t(
+      'The 1 VAVEL service fee is fixed no matter how much you send. On small transfers it can be a large fraction of the '
+      'amount — please review before you confirm.',
+      ru: 'Сервисный сбор 1 VAVEL фиксирован независимо от суммы перевода. При мелких суммах он может составлять большую '
+          'долю отправляемого объёма — проверьте перед подтверждением.');
+
+  String get sendFeeConsentTitle => _t(
+      'Service fee acknowledgment',
+      ru: 'Подтверждение сервисного сбора');
+  /// Text before the underlined [legalTermsTitle] link in the consent dialog.
+  String get sendFeeConsentRichPart1 => _t(
+      'Vavel Wallet charges a fixed in-app service fee of 1 VAVEL (EVM) before your main transfer, sent to the operator '
+      'address shown in the App. Blockchain network fees are separate and paid to validators or miners. By clicking '
+      'Accept, you agree to the fixed Service Fee as described in our ',
+      ru: 'Vavel Wallet взимает фиксированный сервисный сбор 1 VAVEL (EVM) перед основной отправкой на адрес оператора, '
+          'указанный в приложении. Сетевая комиссия блокчейна оплачивается отдельно. Нажимая «Принимаю», вы подтверждаете '
+          'согласие с фиксированным сервисным сбором в объёме, изложенном в нашем документе ');
+  /// Text after the Terms link. Binds Accept to the Terms of Service.
+  String get sendFeeConsentRichPart2 => _t(
+      '.',
+      ru: '.');
+  String get sendFeeConsentCheckbox => _t(
+      'I confirm I have read the Terms of Service and, with the box checked, I accept the fixed 1 VAVEL service fee plus '
+      'network fees as described there before any transfer is started.',
+      ru: 'Подтверждаю, что ознакомился(ась) с Условиями использования и, с отмеченным флажком, принимаю фиксированный '
+          'сервисный сбор 1 VAVEL плюс сетевые комиссии, как там указано, до начала любой отправки.');
+  String get sendFeeConsentAccept => _t('Accept',
+      ru: 'Принимаю');
+  /// Declining closes the dialog and aborts the send flow (no transaction).
+  String get sendFeeConsentDecline => _t('Not now', ru: 'Не сейчас');
+
+  String get legalFeesHubTitle => _t('Legal & fees',
+      ru: 'Право и комиссии');
+  String get legalFeesHubDesc => _t(
+      'Terms, Privacy, and show the service fee notice again',
+      ru: 'Условия, конфиденциальность и снова показать уведомление о сборе');
+  String get legalFeesResetNoticeTitle => _t('Show fee notice again?',
+      ru: 'Показать уведомление о сборе снова?');
+  String get legalFeesResetNoticeBody => _t(
+      'The next time you tap Send, the service fee notice will appear again before any transfer can start. This setting '
+      'does not send a transaction by itself.',
+      ru: 'При следующем нажатии «Отправить» снова появится уведомление о сборе до начала любой отправки. Это действие само '
+          'по себе не инициирует транзакцию.');
+  String get legalFeesResetConfirm => _t('Reset notice', ru: 'Сбросить');
+  String get legalFeesResetCancel => _t('Cancel', ru: 'Отмена');
+  String get legalFeesMenuOpenTerms => _t('Open Terms of Service', ru: 'Открыть Условия использования');
+  String get legalFeesMenuOpenPrivacy => _t('Open Privacy Policy', ru: 'Открыть Политику конфиденциальности');
+  String get legalFeesMenuReset => _t('Show service fee notice on next send',
+      ru: 'Показать уведомление о сборе при следующей отправке');
+  String get legalFeesResetDone => _t('Fee notice will show again on next send.',
+      ru: 'Уведомление о сборе снова появится при следующей отправке.');
+
   // ── Support ──────────────────────────────────────────────────────────────
   String get support => _t('Support',
       ru: 'Поддержка',

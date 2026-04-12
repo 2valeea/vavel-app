@@ -13,6 +13,7 @@ import 'history_screen.dart';
 import 'legal_screens.dart';
 import 'pin_setup_screen.dart';
 import 'support_screen.dart';
+import '../utils/service_fee_consent.dart';
 
 // ── Notifications preferences provider ───────────────────────────────────
 
@@ -63,6 +64,113 @@ class _BiometricNotifier extends StateNotifier<bool> {
     await AuthService.setBiometricEnabled(next);
     state = next;
   }
+}
+
+Future<void> _openLegalFeesHub(BuildContext context, WidgetRef ref) async {
+  final s = ref.read(stringsProvider);
+  await showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: const Color(0xFF172434),
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+    ),
+    builder: (ctx) => SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+            child: Text(
+              s.legalFeesHubTitle,
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 17,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+            child: Text(
+              s.legalFeesHubDesc,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.72),
+                height: 1.35,
+                fontSize: 13,
+              ),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.article_outlined, color: Color(0xFF90CAF9)),
+            title: Text(
+              s.legalFeesMenuOpenTerms,
+              style: const TextStyle(color: Colors.white),
+            ),
+            onTap: () {
+              Navigator.pop(ctx);
+              pushPremium(context, const TermsOfServiceScreen());
+            },
+          ),
+          ListTile(
+            leading:
+                const Icon(Icons.privacy_tip_outlined, color: Color(0xFFCE93D8)),
+            title: Text(
+              s.legalFeesMenuOpenPrivacy,
+              style: const TextStyle(color: Colors.white),
+            ),
+            onTap: () {
+              Navigator.pop(ctx);
+              pushPremium(context, const PrivacyPolicyScreen());
+            },
+          ),
+          const Divider(height: 1, color: Colors.white12),
+          ListTile(
+            leading: const Icon(Icons.refresh, color: Colors.orangeAccent),
+            title: Text(
+              s.legalFeesMenuReset,
+              style: const TextStyle(color: Colors.white),
+            ),
+            onTap: () async {
+              Navigator.pop(ctx);
+              if (!context.mounted) return;
+              final go = await showDialog<bool>(
+                context: context,
+                builder: (dctx) => AlertDialog(
+                  backgroundColor: const Color(0xFF1A2A3E),
+                  title: Text(
+                    s.legalFeesResetNoticeTitle,
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  content: Text(
+                    s.legalFeesResetNoticeBody,
+                    style: const TextStyle(color: Colors.white70, height: 1.35),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(dctx, false),
+                      child: Text(s.legalFeesResetCancel),
+                    ),
+                    FilledButton(
+                      onPressed: () => Navigator.pop(dctx, true),
+                      child: Text(s.legalFeesResetConfirm),
+                    ),
+                  ],
+                ),
+              );
+              if (go == true && context.mounted) {
+                await clearServiceFeeConsent();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(s.legalFeesResetDone)),
+                );
+              }
+            },
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    ),
+  );
 }
 
 // ── Settings screen ───────────────────────────────────────────────────────
@@ -286,6 +394,14 @@ class SettingsScreen extends ConsumerWidget {
             label: s.legalPrivacyTitle,
             description: s.legalPrivacyDesc,
             onTap: () => pushPremium(context, const PrivacyPolicyScreen()),
+          ),
+          const SizedBox(height: 6),
+          _NavTile(
+            icon: Icons.gavel_outlined,
+            iconColor: const Color(0xFFFFB74D),
+            label: s.legalFeesHubTitle,
+            description: s.legalFeesHubDesc,
+            onTap: () => _openLegalFeesHub(context, ref),
           ),
 
           // ── Network ───────────────────────────────────────────────────
