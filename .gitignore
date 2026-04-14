@@ -6,3 +6,6 @@
 # Packaged handoff (do not version).
 vavel_monolith.zip
 _export_zip_staging/
+
+# Local release keystore (never commit).
+vavel-release.jks
