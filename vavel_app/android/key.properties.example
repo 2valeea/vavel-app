@@ -1,0 +1,12 @@
+# ── Copy this file to: android/key.properties (do not commit key.properties) ──
+#
+# Paths in storeFile are relative to android/app/ (the Gradle app module).
+# If you place upload-keystore.jks next to this file (in android/), use:
+#   storeFile=../upload-keystore.jks
+# If you place the keystore inside android/app/, use:
+#   storeFile=upload-keystore.jks
+#
+# storePassword=YOUR_KEYSTORE_PASSWORD
+# keyPassword=YOUR_KEY_PASSWORD
+# keyAlias=upload
+# storeFile=../upload-keystore.jks

@@ -1,216 +1,113 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'send_screen.dart';
+import 'push/push_notification_service.dart';
+import 'providers/wallet_provider.dart';
+import 'providers/locale_provider.dart';
+import 'screens/setup_screen.dart';
+import 'screens/pin_auth_screen.dart';
+import 'screens/home_screen.dart';
+import 'screens/dapp_connect_screen.dart';
 
-void main() => runApp(
-      const MaterialApp(debugShowCheckedModeBanner: false, home: VavelApp()),
-    );
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  // FCM background isolate is mobile-only; registering on web is unsupported noise.
+  if (!kIsWeb) {
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  }
+  runApp(const ProviderScope(child: VavelApp()));
+}
 
-class VavelApp extends StatefulWidget {
+class VavelApp extends ConsumerWidget {
   const VavelApp({super.key});
 
   @override
-  State<VavelApp> createState() => _VavelAppState();
-}
-
-class _VavelAppState extends State<VavelApp> {
-  int _idx = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF001A16),
-      body: <Widget>[
-        const _WalletBody(),
-        const _TitleScreen(title: 'MARKET LIVE'),
-        const _TitleScreen(title: 'DAPP BROWSER'),
-        const _SettingsBody(),
-      ][_idx],
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: const Color(0xFF00241F),
-        selectedItemColor: const Color(0xFF00E676),
-        unselectedItemColor: Colors.white38,
-        currentIndex: _idx,
-        onTap: (i) => setState(() => _idx = i),
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.wallet), label: 'VAVEL'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.show_chart),
-            label: 'Market',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.explore),
-            label: 'Browser',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TitleScreen extends StatelessWidget {
-  const _TitleScreen({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        title,
-        style: const TextStyle(color: Colors.white, fontSize: 20),
-      ),
-    );
-  }
-}
-
-class _WalletBody extends StatelessWidget {
-  const _WalletBody();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: <Color>[Color(0xFF004D40), Color(0xFF001A16)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-      ),
-      child: SafeArea(
-        child: Column(
-          children: <Widget>[
-            const SizedBox(height: 40),
-            const Text(
-              'VAVEI INNOVATION TOKEN',
-              style: TextStyle(color: Colors.white70, letterSpacing: 2),
-            ),
-            const Text(
-              '450,000.00',
-              style: TextStyle(
-                fontSize: 40,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            const Text(
-              r'$15,200.50 USD',
-              style: TextStyle(color: Colors.white38),
-            ),
-            const SizedBox(height: 30),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                _WalletActionButton(
-                  icon: Icons.download,
-                  label: 'Receive',
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Receive (stub).')),
-                    );
-                  },
-                ),
-                _WalletActionButton(
-                  icon: Icons.upload,
-                  label: 'Send',
-                  onTap: () {
-                    Navigator.of(context).push<void>(
-                      MaterialPageRoute<void>(
-                        builder: (BuildContext ctx) => const SendScreen(),
-                      ),
-                    );
-                  },
-                ),
-                _WalletActionButton(
-                  icon: Icons.swap_horiz,
-                  label: 'Swap',
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Swap (stub).')),
-                    );
-                  },
-                ),
-              ],
-            ),
-            const Expanded(
-              child: Padding(
-                padding: EdgeInsets.all(20),
-                child: Text(
-                  'ASSETS: VAVEI, TON, USDT',
-                  style: TextStyle(color: Color(0xFF00E676)),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _WalletActionButton extends StatelessWidget {
-  const _WalletActionButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(40),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            CircleAvatar(
-              backgroundColor: const Color(0xFF00E676),
-              child: Icon(icon, color: Colors.black),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              style: const TextStyle(color: Colors.white, fontSize: 12),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SettingsBody extends StatelessWidget {
-  const _SettingsBody();
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      children: const <Widget>[
-        ListTile(
-          leading: Icon(Icons.language),
-          title: Text('Language'),
-          trailing: Text('Russian'),
-        ),
-        ListTile(
-          leading: Icon(Icons.support_agent),
-          title: Text('Support Center'),
-        ),
-        ListTile(
-          leading: Icon(Icons.lock),
-          title: Text('Security'),
-        ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final locale = ref.watch(localeProvider);
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      locale: locale,
+      supportedLocales: const [
+        Locale('en'),
+        Locale('ru'),
+        Locale('de'),
+        Locale('da'),
+        Locale('et'),
+        Locale('pt'),
+        Locale('uk'),
       ],
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: const Color(0xFF0D1B2E),
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFF2979FF),
+          secondary: Color(0xFF2979FF),
+          surface: Color(0xFF1A2A3E),
+        ),
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: ZoomPageTransitionsBuilder(),
+            TargetPlatform.fuchsia: ZoomPageTransitionsBuilder(),
+            TargetPlatform.linux: ZoomPageTransitionsBuilder(),
+            TargetPlatform.windows: ZoomPageTransitionsBuilder(),
+            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+          },
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF0D1B2E),
+          elevation: 0,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF2979FF),
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 14),
+          ),
+        ),
+      ),
+      home: const _AppRouter(),
+    );
+  }
+}
+
+class _AppRouter extends ConsumerWidget {
+  const _AppRouter();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final route = ref.watch(appRouteProvider);
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 400),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      transitionBuilder: (child, animation) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+        return FadeTransition(
+          opacity: curved,
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.988, end: 1).animate(curved),
+            child: child,
+          ),
+        );
+      },
+      child: KeyedSubtree(
+        key: ValueKey<AppRoute>(route),
+        child: switch (route) {
+          AppRoute.setup => const SetupScreen(),
+          AppRoute.pinAuth => const PinAuthScreen(),
+          AppRoute.home => const HomeScreen(),
+          AppRoute.dappConnect => const DappConnectScreen(),
+        },
+      ),
     );
   }
 }

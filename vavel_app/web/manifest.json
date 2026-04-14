@@ -1,6 +1,6 @@
 {
-    "name": "vavel_app",
-    "short_name": "vavel_app",
+    "name": "vavel_wallet",
+    "short_name": "vavel_wallet",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

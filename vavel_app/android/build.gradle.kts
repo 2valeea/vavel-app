@@ -1,7 +1,21 @@
+import com.android.build.gradle.BaseExtension
+
 allprojects {
     repositories {
         google()
         mavenCentral()
+        // walletconnect_pay → com.github.reown-com.yttrium:yttrium-wcpay (Reown / WalletConnect Pay)
+        maven { url = uri("https://jitpack.io") }
+    }
+}
+
+// Align Java language level for all Android library subprojects (stops JDK 8 obsolete warnings from plugins).
+subprojects {
+    afterEvaluate {
+        extensions.findByType<BaseExtension>()?.compileOptions?.apply {
+            sourceCompatibility = JavaVersion.VERSION_17
+            targetCompatibility = JavaVersion.VERSION_17
+        }
     }
 }
 

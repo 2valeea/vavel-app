@@ -1,17 +1,65 @@
-# vavel_app
+# Vavel Wallet
 
-A new Flutter project.
+Vavel Wallet is a mobile wallet application designed for managing your tokens. This application allows users to view their token balances, transaction history, and interact with their digital assets seamlessly.
+
+## Features
+
+- View token balances
+- Transaction history
+- User-friendly interface
+- Secure wallet management
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+To get started with the Vavel Wallet application, follow these steps:
 
-A few resources to get you started if this is your first Flutter project:
+1. **Clone the repository:**
+   ```
+   git clone https://github.com/yourusername/vavel_wallet.git
+   ```
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+2. **Navigate to the project directory:**
+   ```
+   cd vavel_wallet
+   ```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+3. **Install dependencies:**
+   ```
+   flutter pub get
+   ```
+
+4. **Run the application:**
+   ```
+   flutter run
+   ```
+
+## Project Structure
+
+```
+vavel_wallet
+├── android
+├── ios
+├── lib
+│   ├── main.dart
+│   ├── models
+│   │   └── token.dart
+│   ├── screens
+│   │   ├── home_screen.dart
+│   │   └── wallet_screen.dart
+│   ├── services
+│   │   └── wallet_service.dart
+│   └── widgets
+│       └── token_card.dart
+├── test
+│   └── widget_test.dart
+├── pubspec.yaml
+└── README.md
+```
+
+## Contributing
+
+If you would like to contribute to the Vavel Wallet project, please fork the repository and submit a pull request. We welcome contributions of all kinds!
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
