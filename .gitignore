@@ -1,0 +1,4 @@
+# Local Flutter SDK checkout (not part of the app; CI uses flutter-action).
+/flutter/
+
+.vscode/

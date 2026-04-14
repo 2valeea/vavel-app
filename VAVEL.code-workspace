@@ -1,0 +1,20 @@
+{
+  "folders": [
+    {
+      "name": "vavel_app",
+      "path": "vavel_app"
+    }
+  ],
+  "settings": {
+    "dart.runPubGetOnPubspecSave": true,
+    "dart.analysisExcludedFolders": ["flutter"],
+    "files.watcherExclude": {
+      "flutter/**": true,
+      "**/build/**": true,
+      "**/.dart_tool/**": true
+    },
+    "search.exclude": {
+      "flutter": true
+    }
+  }
+}
