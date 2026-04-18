@@ -3,11 +3,13 @@
          (debug/profile manifests add this too; main must include it for appbundle/release.) -->
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Android 13+ runtime permission for FCM heads-up notifications -->
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission
+        android:name="android.permission.POST_NOTIFICATIONS" />
     <application
-        android:label="vavel_wallet"
+        android:label="@string/app_name"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="false">
         <activity
             android:name=".MainActivity"
             android:exported="true"
