@@ -20,6 +20,7 @@ String normalizeRecipientAddress(AssetId assetId, String raw) {
       return t.toLowerCase();
     case AssetId.btc:
     case AssetId.sol:
+    case AssetId.tiktok:
     case AssetId.ton:
       return t;
   }

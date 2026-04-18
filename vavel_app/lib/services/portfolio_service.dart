@@ -56,6 +56,7 @@ class PortfolioService {
           ));
 
         case AssetType.sol:
+        case AssetType.token2022:
         case AssetType.ton:
           // Handled by SolanaAdapter / TonAdapter in WalletService.
           break;

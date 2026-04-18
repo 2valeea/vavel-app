@@ -422,14 +422,6 @@ class SettingsScreen extends ConsumerWidget {
                 .read(networkProvider.notifier)
                 .setNetwork(AppNetwork.mainnet),
           ),
-          const SizedBox(height: 6),
-          _NetworkTile(
-            label: s.networkTestnet,
-            description: s.networkTestnetDesc,
-            network: AppNetwork.testnet,
-            selected: network == AppNetwork.testnet,
-            onTap: () => _confirmTestnet(context, ref, s.networkTestnetWarning),
-          ),
 
           // ── RPC tips ──────────────────────────────────────────────────
           const SizedBox(height: 24),
@@ -458,36 +450,6 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _confirmTestnet(
-    BuildContext context,
-    WidgetRef ref,
-    String warning,
-  ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A2A3E),
-        title: const Text('Switch to Testnet?'),
-        content: Text(
-          warning,
-          style: const TextStyle(color: Colors.orange),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Switch', style: TextStyle(color: Colors.orange)),
-          ),
-        ],
-      ),
-    );
-    if (confirmed == true) {
-      ref.read(networkProvider.notifier).setNetwork(AppNetwork.testnet);
-    }
-  }
 }
 
 // ── Language list constant ────────────────────────────────────────────────
@@ -538,36 +500,45 @@ class _LanguageTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: selected
-              ? accent.withValues(alpha: 0.12)
-              : const Color(0xFF1A2A3E),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: selected ? accent : Colors.transparent,
-            width: 1.5,
-          ),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      decoration: BoxDecoration(
+        color: selected
+            ? accent.withValues(alpha: 0.12)
+            : const Color(0xFF1A2A3E),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: selected ? accent : Colors.transparent,
+          width: 1.5,
         ),
-        child: Row(
-          children: [
-            Text(flag, style: const TextStyle(fontSize: 22)),
-            const SizedBox(width: 12),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-                color: selected ? Colors.white : Colors.white70,
-              ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Text(flag, style: const TextStyle(fontSize: 22)),
+                const SizedBox(width: 12),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight:
+                        selected ? FontWeight.bold : FontWeight.normal,
+                    color: selected ? Colors.white : Colors.white70,
+                  ),
+                ),
+                const Spacer(),
+                if (selected) Icon(Icons.check_circle, color: accent, size: 20),
+              ],
             ),
-            const Spacer(),
-            if (selected) Icon(Icons.check_circle, color: accent, size: 20),
-          ],
+          ),
         ),
       ),
     );
@@ -593,43 +564,46 @@ class _NavTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1A2A3E),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.13),
-                shape: BoxShape.circle,
+    return Material(
+      color: const Color(0xFF1A2A3E),
+      borderRadius: BorderRadius.circular(12),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.13),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: iconColor, size: 18),
               ),
-              child: Icon(icon, color: iconColor, size: 18),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label,
-                      style: const TextStyle(
-                          fontSize: 15, fontWeight: FontWeight.w500)),
-                  const SizedBox(height: 2),
-                  Text(description,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: Colors.grey, fontSize: 11)),
-                ],
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label,
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w500)),
+                    const SizedBox(height: 2),
+                    Text(description,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style:
+                            const TextStyle(color: Colors.grey, fontSize: 11)),
+                  ],
+                ),
               ),
-            ),
-            const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
-          ],
+              const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
+            ],
+          ),
         ),
       ),
     );
@@ -723,72 +697,82 @@ class _NetworkTile extends StatelessWidget {
     final indicatorColor = isTestnet ? Colors.orange : Colors.greenAccent;
     final accent = Theme.of(context).colorScheme.primary;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      decoration: BoxDecoration(
+        color: selected
+            ? (isTestnet
+                ? Colors.orange.withValues(alpha: 0.08)
+                : accent.withValues(alpha: 0.08))
+            : const Color(0xFF1A2A3E),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
           color: selected
-              ? (isTestnet
-                  ? Colors.orange.withValues(alpha: 0.08)
-                  : accent.withValues(alpha: 0.08))
-              : const Color(0xFF1A2A3E),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: selected
-                ? (isTestnet ? Colors.orange : accent)
-                : Colors.transparent,
-            width: 1.5,
-          ),
+              ? (isTestnet ? Colors.orange : accent)
+              : Colors.transparent,
+          width: 1.5,
         ),
-        child: Row(
-          children: [
-            // Live indicator dot
-            Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(
-                color: selected ? indicatorColor : Colors.grey.shade700,
-                shape: BoxShape.circle,
-                boxShadow: selected
-                    ? [
-                        BoxShadow(
-                          color: indicatorColor.withValues(alpha: 0.6),
-                          blurRadius: 6,
-                        )
-                      ]
-                    : [],
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight:
-                          selected ? FontWeight.bold : FontWeight.normal,
-                      color: selected ? Colors.white : Colors.white70,
-                    ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: selected ? indicatorColor : Colors.grey.shade700,
+                    shape: BoxShape.circle,
+                    boxShadow: selected
+                        ? [
+                            BoxShadow(
+                              color: indicatorColor.withValues(alpha: 0.6),
+                              blurRadius: 6,
+                            )
+                          ]
+                        : [],
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    description,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isTestnet ? Colors.orange.shade200 : Colors.grey,
-                    ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: selected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: selected ? Colors.white : Colors.white70,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        description,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isTestnet
+                              ? Colors.orange.shade200
+                              : Colors.grey,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                if (selected)
+                  Icon(Icons.check_circle, color: indicatorColor, size: 20),
+              ],
             ),
-            if (selected)
-              Icon(Icons.check_circle, color: indicatorColor, size: 20),
-          ],
+          ),
         ),
       ),
     );

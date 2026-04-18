@@ -9,6 +9,7 @@ import '../providers/wallet_provider.dart';
 import '../push/push_notification_service.dart';
 import '../providers/balance_provider.dart';
 import '../providers/price_provider.dart';
+import '../providers/jupiter_tiktok_provider.dart';
 import '../providers/locale_provider.dart';
 import '../providers/network_provider.dart';
 import '../services/wallet_service.dart';
@@ -61,6 +62,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final duress = ref.watch(duressModeProvider);
 
     final prices = pricesAsync.valueOrNull ?? {};
+    final jupTiktok = ref.watch(jupiterTiktokInfoProvider);
 
     String address(AssetId id) {
       final addrs = addressesAsync.valueOrNull;
@@ -72,6 +74,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         case AssetId.btc:
           return addrs.bitcoin;
         case AssetId.sol:
+        case AssetId.tiktok:
           return addrs.solana;
         case AssetId.ton:
           return addrs.ton;
@@ -99,7 +102,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     double portfolioTotal = 0;
     if (!duress) {
       for (final id in AssetId.values) {
-        final price = prices[id.ticker] ?? 0;
+        final price = id == AssetId.tiktok
+            ? (jupTiktok.valueOrNull?.usdPrice ?? 0)
+            : (prices[id.ticker] ?? 0);
         final amount = balanceNum(id, balances) ?? 0;
         portfolioTotal += price * amount;
       }
@@ -119,9 +124,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
             const SizedBox(width: 8),
-            Text(s.appTitle,
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Expanded(
+              child: Text(
+                s.appTitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                softWrap: false,
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ),
             if (isTestnet) ...[
               const SizedBox(width: 8),
               _TestnetBadge(),
@@ -166,6 +178,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         onRefresh: () async {
           ref.invalidate(balanceProvider);
           ref.invalidate(priceProvider);
+          ref.invalidate(jupiterTiktokInfoProvider);
         },
         child: CustomScrollView(
           slivers: [
@@ -210,12 +223,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               delegate: SliverChildListDelegate([
                 if (showBalanceSkeleton)
                   ...List.generate(
-                    5,
+                    6,
                     (_) => const HomeAssetTileSkeleton(),
                   )
                 else
                   ...AssetId.values.map((id) {
-                    final price = prices[id.ticker];
+                    final jup = jupTiktok.valueOrNull;
+                    final price = id == AssetId.tiktok
+                        ? jup?.usdPrice
+                        : prices[id.ticker];
                     final amount = duress ? 0.0 : balanceNum(id, balances);
                     final usdValue = duress
                         ? 0.0
@@ -224,6 +240,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             : null;
                     return _AssetTile(
                       id: id,
+                      displayName:
+                          id == AssetId.tiktok ? (jup?.name) : null,
+                      displayTicker:
+                          id == AssetId.tiktok ? (jup?.symbol) : null,
+                      imageUrl: id == AssetId.tiktok ? jup?.icon : null,
                       balance: balancesAsync.isLoading && !duress
                           ? null
                           : (duress ? '0' : balanceStr(id, balances)),
@@ -231,7 +252,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       usdFmt: usdFmt,
                       cryptoFmt: cryptoFmt,
                       loading: balancesAsync.isLoading && !duress,
-                      priceLoading: pricesAsync.isLoading && !duress,
+                      priceLoading: (pricesAsync.isLoading &&
+                              !duress &&
+                              id != AssetId.tiktok) ||
+                          (jupTiktok.isLoading && !duress && id == AssetId.tiktok),
                       s: s,
                       actionsEnabled: !duress,
                       onSend: () => pushPremium(
@@ -349,6 +373,11 @@ class _PortfolioHeader extends StatelessWidget {
 
 class _AssetTile extends StatelessWidget {
   final AssetId id;
+  /// When set (e.g. Solana token from Jupiter), overrides [AssetInfo.label].
+  final String? displayName;
+  /// When set, overrides [AssetInfo.ticker] in the balance line.
+  final String? displayTicker;
+  final String? imageUrl;
   final String? balance;
   final double? usdValue;
   final NumberFormat usdFmt;
@@ -364,6 +393,9 @@ class _AssetTile extends StatelessWidget {
 
   const _AssetTile({
     required this.id,
+    this.displayName,
+    this.displayTicker,
+    this.imageUrl,
     required this.balance,
     required this.usdValue,
     required this.usdFmt,
@@ -378,70 +410,134 @@ class _AssetTile extends StatelessWidget {
     required this.onBlocked,
   });
 
+  Widget _leadingAvatar() {
+    if (id == AssetId.tiktok &&
+        imageUrl != null &&
+        imageUrl!.trim().isNotEmpty) {
+      return ClipOval(
+        child: Image.network(
+          imageUrl!,
+          width: 44,
+          height: 44,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) =>
+              Icon(id.icon, color: id.color, size: 24),
+          headers: const {'Accept': 'image/*'},
+        ),
+      );
+    }
+    if (id == AssetId.vavel) {
+      return ClipOval(
+        child: Image.asset('assets/images/VAVEL.jpeg',
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) =>
+                Icon(id.icon, color: id.color, size: 24)),
+      );
+    }
+    return Icon(id.icon, color: id.color, size: 24);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final title = (displayName != null && displayName!.isNotEmpty)
+        ? displayName!
+        : id.label;
+    final tkr =
+        (displayTicker != null && displayTicker!.isNotEmpty) ? displayTicker! : id.ticker;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       padding: const EdgeInsets.all(16),
+      clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
         color: const Color(0xFF1A2A3E),
         borderRadius: BorderRadius.circular(14),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: id.color.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: id == AssetId.vavel
-                ? ClipOval(
-                    child: Image.asset('assets/images/VAVEL.jpeg',
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) =>
-                            Icon(id.icon, color: id.color, size: 24)))
-                : Icon(id.icon, color: id.color, size: 24),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(id.label,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 15)),
-                const SizedBox(height: 2),
-                loading
-                    ? const SkeletonPulse(
-                        width: 80,
-                        height: 12,
-                        borderRadius: BorderRadius.all(Radius.circular(6)),
-                      )
-                    : Text('${balance ?? '—'} ${id.ticker}',
-                        style:
-                            const TextStyle(color: Colors.grey, fontSize: 12)),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              (loading || priceLoading)
-                  ? const SkeletonPulse(
-                      width: 60,
-                      height: 14,
-                      borderRadius: BorderRadius.all(Radius.circular(6)),
-                    )
-                  : Text(
-                      usdValue != null
-                          ? usdFmt.format(usdValue)
-                          : (id == AssetId.vavel ? '—' : s.priceUnavailable),
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: id.color.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: _leadingAvatar(),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      softWrap: false,
                       style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 15)),
-              const SizedBox(height: 8),
-              Row(children: [
+                          fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                    const SizedBox(height: 2),
+                    loading
+                        ? const SkeletonPulse(
+                            width: 80,
+                            height: 12,
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(6)),
+                          )
+                        : Text(
+                            '${balance ?? '—'} $tkr',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            softWrap: false,
+                            style: const TextStyle(
+                                color: Colors.grey, fontSize: 12),
+                          ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Fixed max width so the title column keeps almost all row width
+              // (avoids letter-by-letter wrap when USD text competes in a Flex).
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 104),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: (loading || priceLoading)
+                      ? const SkeletonPulse(
+                          width: 60,
+                          height: 14,
+                          borderRadius:
+                              BorderRadius.all(Radius.circular(6)),
+                        )
+                      : Text(
+                          usdValue != null
+                              ? usdFmt.format(usdValue)
+                              : (id == AssetId.vavel || id == AssetId.tiktok
+                                  ? '—'
+                                  : s.priceUnavailable),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: false,
+                          textAlign: TextAlign.end,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 15),
+                        ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              alignment: WrapAlignment.end,
+              children: [
                 _ActionChip(
                     label: s.send,
                     icon: Icons.arrow_upward,
@@ -449,7 +545,6 @@ class _AssetTile extends StatelessWidget {
                     enabled: actionsEnabled,
                     onTap: onSend,
                     onBlocked: onBlocked),
-                const SizedBox(width: 6),
                 _ActionChip(
                     label: s.receive,
                     icon: Icons.arrow_downward,
@@ -457,7 +552,6 @@ class _AssetTile extends StatelessWidget {
                     enabled: actionsEnabled,
                     onTap: onReceive,
                     onBlocked: onBlocked),
-                const SizedBox(width: 6),
                 _ActionChip(
                     label: s.swap,
                     icon: Icons.swap_horiz,
@@ -465,8 +559,8 @@ class _AssetTile extends StatelessWidget {
                     enabled: actionsEnabled,
                     onTap: onSwap,
                     onBlocked: onBlocked),
-              ]),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -495,24 +589,36 @@ class _ActionChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final effectiveColor =
         enabled ? color : color.withValues(alpha: 0.35);
-    return GestureDetector(
-      onTap: enabled ? onTap : onBlocked,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: enabled ? onTap : onBlocked,
+        borderRadius: BorderRadius.circular(20),
+        child: Ink(
+          decoration: BoxDecoration(
             color: effectiveColor.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(20)),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 12, color: effectiveColor),
-            const SizedBox(width: 4),
-            Text(label,
-                style: TextStyle(
-                    color: effectiveColor,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600)),
-          ],
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 14, color: effectiveColor),
+                const SizedBox(width: 4),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.clip,
+                  softWrap: false,
+                  style: TextStyle(
+                      color: effectiveColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -576,6 +682,7 @@ class _ChainErrorBanner extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       padding: const EdgeInsets.all(12),
+      clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
         color: Colors.orange.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(10),

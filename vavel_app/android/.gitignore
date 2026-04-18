@@ -12,3 +12,4 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+PLAY_SIGNING_CREDENTIALS.txt

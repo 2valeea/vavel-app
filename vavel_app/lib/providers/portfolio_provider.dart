@@ -20,6 +20,11 @@ final dioProvider = Provider<Dio>((ref) {
   return Dio(BaseOptions(
     connectTimeout: const Duration(seconds: 15),
     receiveTimeout: const Duration(seconds: 15),
+    // Some public APIs (rates, RPC) reject requests without a UA.
+    headers: const {
+      'User-Agent': 'VavelWallet/1.0 (Flutter; https://vavel.io)',
+      'Accept': 'application/json',
+    },
   ));
 });
 

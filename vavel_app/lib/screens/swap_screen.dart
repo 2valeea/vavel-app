@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../models/asset_id.dart';
-import '../widgets/skeleton_shimmer.dart';
 import '../providers/price_provider.dart';
+import '../providers/jupiter_tiktok_provider.dart';
 import '../providers/locale_provider.dart';
 
 /// Simple swap/conversion calculator.
@@ -43,20 +43,89 @@ class _SwapScreenState extends ConsumerState<SwapScreen> {
   Widget build(BuildContext context) {
     final s = ref.watch(stringsProvider);
     final pricesAsync = ref.watch(priceProvider);
+    final jupTiktok = ref.watch(jupiterTiktokInfoProvider);
+    // Never gate the whole screen on HTTP: user must always tap pickers & swap.
+    final prices = pricesAsync.valueOrNull ?? <String, double>{};
 
     return Scaffold(
-      appBar: AppBar(title: Text(s.swapTitle)),
-      body: pricesAsync.when(
-        loading: () => const SwapScreenSkeleton(),
-        error: (_, __) => Center(child: Text(s.swapPricesMissing)),
-        data: (prices) => _buildBody(context, s, prices),
+      appBar: AppBar(
+        title: Text(s.swapTitle),
+        actions: [
+          IconButton(
+            tooltip: 'Refresh rates',
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              ref.invalidate(priceProvider);
+              ref.invalidate(jupiterTiktokInfoProvider);
+            },
+          ),
+        ],
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (pricesAsync.isLoading && prices.isEmpty)
+            const LinearProgressIndicator(minHeight: 2),
+          if (pricesAsync.hasError)
+            Material(
+              color: Colors.redAccent.withValues(alpha: 0.12),
+              child: ListTile(
+                dense: true,
+                leading: const Icon(Icons.cloud_off, color: Colors.redAccent),
+                title: Text(
+                  s.swapPricesMissing,
+                  style: const TextStyle(fontSize: 13),
+                ),
+                subtitle: const Text(
+                  'Выбор валют работает. Нажмите «Обновить» для курсов.',
+                  style: TextStyle(fontSize: 11),
+                ),
+                trailing: IconButton(
+                  icon: const Icon(Icons.refresh),
+                  onPressed: () {
+                    ref.invalidate(priceProvider);
+                    ref.invalidate(jupiterTiktokInfoProvider);
+                  },
+                ),
+              ),
+            ),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(priceProvider);
+                ref.invalidate(jupiterTiktokInfoProvider);
+                try {
+                  await ref.read(priceProvider.future);
+                } catch (_) {}
+                try {
+                  await ref.read(jupiterTiktokInfoProvider.future);
+                } catch (_) {}
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16),
+                child: _buildBody(
+                  context,
+                  s,
+                  prices,
+                  jupTiktok.valueOrNull?.usdPrice,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildBody(BuildContext context, s, Map<String, double> prices) {
-    final fromPrice = _priceFor(_from, prices);
-    final toPrice = _priceFor(_to, prices);
+  Widget _buildBody(
+    BuildContext context,
+    s,
+    Map<String, double> prices,
+    double? tiktokUsd,
+  ) {
+    final fromPrice = _priceFor(_from, prices, tiktokUsd: tiktokUsd);
+    final toPrice = _priceFor(_to, prices, tiktokUsd: tiktokUsd);
 
     final amountStr = _amtController.text.replaceAll(',', '.');
     final amount = double.tryParse(amountStr) ?? 0;
@@ -78,7 +147,7 @@ class _SwapScreenState extends ConsumerState<SwapScreen> {
           // ── From ──────────────────────────────────────────────────────
           _SectionLabel(s.swapFrom),
           const SizedBox(height: 8),
-          _AssetSelector(
+          _AssetPickerButton(
             selected: _from,
             exclude: _to,
             onChanged: (id) => setState(() => _from = id),
@@ -95,18 +164,29 @@ class _SwapScreenState extends ConsumerState<SwapScreen> {
           // ── Swap button ───────────────────────────────────────────────
           const SizedBox(height: 16),
           Center(
-            child: GestureDetector(
-              onTap: _swap,
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1A2A3E),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                      color: const Color(0xFF2979FF).withValues(alpha: 0.4)),
+            child: Material(
+              color: const Color(0xFF1A2A3E),
+              shape: const CircleBorder(),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: _swap,
+                customBorder: const CircleBorder(),
+                child: SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: Ink(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                          color:
+                              const Color(0xFF2979FF).withValues(alpha: 0.4)),
+                    ),
+                    child: const Center(
+                      child: Icon(Icons.swap_vert,
+                          color: Color(0xFF2979FF), size: 24),
+                    ),
+                  ),
                 ),
-                child: const Icon(Icons.swap_vert,
-                    color: Color(0xFF2979FF), size: 24),
               ),
             ),
           ),
@@ -115,7 +195,7 @@ class _SwapScreenState extends ConsumerState<SwapScreen> {
           const SizedBox(height: 16),
           _SectionLabel(s.swapTo),
           const SizedBox(height: 8),
-          _AssetSelector(
+          _AssetPickerButton(
             selected: _to,
             exclude: _from,
             onChanged: (id) => setState(() => _to = id),
@@ -161,8 +241,12 @@ class _SwapScreenState extends ConsumerState<SwapScreen> {
     );
   }
 
-  double? _priceFor(AssetId id, Map<String, double> prices) {
-    // prices map is keyed by uppercase ticker symbol (BTC, ETH, SOL, TON)
+  double? _priceFor(
+    AssetId id,
+    Map<String, double> prices, {
+    double? tiktokUsd,
+  }) {
+    if (id == AssetId.tiktok) return tiktokUsd;
     return prices[id.ticker];
   }
 }
@@ -183,58 +267,109 @@ class _SectionLabel extends StatelessWidget {
   }
 }
 
-class _AssetSelector extends StatelessWidget {
+/// Opens a modal list — reliable taps on all devices (unlike nested [DropdownButton]).
+class _AssetPickerButton extends StatelessWidget {
   final AssetId selected;
   final AssetId exclude;
   final ValueChanged<AssetId> onChanged;
 
-  const _AssetSelector({
+  const _AssetPickerButton({
     required this.selected,
     required this.exclude,
     required this.onChanged,
   });
 
-  @override
-  Widget build(BuildContext context) {
+  Future<void> _openPicker(BuildContext context) async {
     final options = AssetId.values.where((a) => a != exclude).toList();
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A2A3E),
-        borderRadius: BorderRadius.circular(12),
+    final picked = await showModalBottomSheet<AssetId>(
+      context: context,
+      backgroundColor: const Color(0xFF172434),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
       ),
-      child: DropdownButton<AssetId>(
-        value: selected,
-        isExpanded: true,
-        dropdownColor: const Color(0xFF1A2A3E),
-        underline: const SizedBox.shrink(),
-        items: options.map((id) {
-          return DropdownMenuItem(
-            value: id,
-            child: Row(
-              children: [
-                Container(
-                  width: 30,
-                  height: 30,
+      builder: (ctx) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Text(
+                'Выберите актив',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+              ),
+            ),
+            for (final id in options)
+              ListTile(
+                leading: Container(
+                  width: 36,
+                  height: 36,
                   decoration: BoxDecoration(
                     color: id.color.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(id.icon, color: id.color, size: 16),
+                  child: Icon(id.icon, color: id.color, size: 18),
                 ),
-                const SizedBox(width: 10),
-                Text(id.label,
-                    style: const TextStyle(fontWeight: FontWeight.w600)),
-                const SizedBox(width: 6),
-                Text(id.ticker,
-                    style: const TextStyle(color: Colors.grey, fontSize: 12)),
-              ],
-            ),
-          );
-        }).toList(),
-        onChanged: (id) {
-          if (id != null) onChanged(id);
-        },
+                title: Text(
+                  id.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                subtitle: Text(
+                  id.ticker,
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+                onTap: () => Navigator.pop(ctx, id),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (picked != null) onChanged(picked);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: const Color(0xFF1A2A3E),
+      borderRadius: BorderRadius.circular(12),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => _openPicker(context),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: selected.color.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(selected.icon, color: selected.color, size: 18),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  selected.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600, fontSize: 16),
+                ),
+              ),
+              Text(
+                selected.ticker,
+                style: const TextStyle(color: Colors.grey, fontSize: 13),
+              ),
+              const SizedBox(width: 4),
+              const Icon(Icons.expand_more, color: Colors.white54),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -261,7 +396,7 @@ class _AmountField extends StatelessWidget {
     final usdValue = price != null ? price! * amount : null;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
         color: const Color(0xFF1A2A3E),
         borderRadius: BorderRadius.circular(12),
@@ -271,17 +406,28 @@ class _AmountField extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: TextField(
-              controller: controller,
-              onChanged: onChanged,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                hintText: '0',
-                hintStyle: TextStyle(
-                    fontSize: 22, color: Colors.white.withValues(alpha: 0.2)),
+            child: Material(
+              color: Colors.transparent,
+              child: TextField(
+                controller: controller,
+                enabled: true,
+                readOnly: false,
+                canRequestFocus: true,
+                onChanged: onChanged,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                cursorColor: const Color(0xFF2979FF),
+                style:
+                    const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  hintText: '0',
+                  hintStyle: TextStyle(
+                      fontSize: 22,
+                      color: Colors.white.withValues(alpha: 0.2)),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                ),
               ),
             ),
           ),

@@ -6,7 +6,7 @@ import 'asset.dart';
 /// Kept separate from [Asset] (which is a pure data model with no Flutter
 /// dependency) so that [SwapScreen] can import this without creating a
 /// circular dependency through [HomeScreen].
-enum AssetId { vavel, btc, eth, sol, ton }
+enum AssetId { vavel, btc, eth, sol, tiktok, ton }
 
 extension AssetInfo on AssetId {
   Asset get asset => kAssets.firstWhere((a) => a.id == name);
@@ -25,6 +25,8 @@ extension AssetInfo on AssetId {
         return const Color(0xFF627EEA);
       case AssetId.sol:
         return const Color(0xFF9945FF);
+      case AssetId.tiktok:
+        return const Color(0xFFFF2E8B);
       case AssetId.ton:
         return const Color(0xFF0098EA);
     }
@@ -40,6 +42,8 @@ extension AssetInfo on AssetId {
         return Icons.diamond_outlined;
       case AssetId.sol:
         return Icons.blur_circular;
+      case AssetId.tiktok:
+        return Icons.bolt;
       case AssetId.ton:
         return Icons.hub_outlined;
     }

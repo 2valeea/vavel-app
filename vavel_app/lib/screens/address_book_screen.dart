@@ -68,6 +68,7 @@ class _AddressBookScreenState extends ConsumerState<AddressBookScreen> {
         centerTitle: true,
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'address_book_fab',
         onPressed: () => _showAddOrEditDialog(context, ref, null),
         icon: const Icon(Icons.person_add_alt_1),
         label: const Text('Add'),
@@ -120,13 +121,25 @@ class _AddressBookScreenState extends ConsumerState<AddressBookScreen> {
                   return Center(
                     child: Padding(
                       padding: const EdgeInsets.all(24),
-                      child: Text(
-                        'Save trusted addresses for faster, safer sends. '
-                        'Tap Add to create your first contact.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.65),
-                          height: 1.4,
+                      child: Material(
+                        color: const Color(0xFF1A2A3E),
+                        borderRadius: BorderRadius.circular(12),
+                        child: InkWell(
+                          onTap: () =>
+                              _showAddOrEditDialog(context, ref, null),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Text(
+                              'Save trusted addresses for faster, safer sends. '
+                              'Tap here or Add to create your first contact.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.85),
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -323,11 +336,22 @@ class _AddressBookScreenState extends ConsumerState<AddressBookScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    TextField(
-                      controller: labelCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Label',
-                        border: OutlineInputBorder(),
+                    Material(
+                      color: const Color(0xFF243447),
+                      borderRadius: BorderRadius.circular(8),
+                      clipBehavior: Clip.antiAlias,
+                      child: TextField(
+                        controller: labelCtrl,
+                        enabled: true,
+                        readOnly: false,
+                        canRequestFocus: true,
+                        cursorColor: const Color(0xFF2979FF),
+                        style: const TextStyle(color: Colors.white),
+                        decoration: const InputDecoration(
+                          labelText: 'Label',
+                          labelStyle: TextStyle(color: Colors.white70),
+                          border: OutlineInputBorder(),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -350,17 +374,33 @@ class _AddressBookScreenState extends ConsumerState<AddressBookScreen> {
                       },
                     ),
                     const SizedBox(height: 12),
-                    TextField(
-                      controller: addrCtrl,
-                      maxLines: 2,
-                      decoration: InputDecoration(
-                        labelText: (asset == AssetId.eth || asset == AssetId.vavel)
-                            ? 'Address or .eth name'
-                            : 'Address',
-                        hintText: (asset == AssetId.eth || asset == AssetId.vavel)
-                            ? '0x… or vitalik.eth'
-                            : null,
-                        border: const OutlineInputBorder(),
+                    Material(
+                      color: const Color(0xFF243447),
+                      borderRadius: BorderRadius.circular(8),
+                      clipBehavior: Clip.antiAlias,
+                      child: TextField(
+                        controller: addrCtrl,
+                        enabled: true,
+                        readOnly: false,
+                        canRequestFocus: true,
+                        maxLines: 2,
+                        cursorColor: const Color(0xFF2979FF),
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          labelText:
+                              (asset == AssetId.eth || asset == AssetId.vavel)
+                                  ? 'Address or .eth name'
+                                  : 'Address',
+                          labelStyle:
+                              const TextStyle(color: Colors.white70),
+                          hintText:
+                              (asset == AssetId.eth || asset == AssetId.vavel)
+                                  ? '0x… or vitalik.eth'
+                                  : null,
+                          hintStyle: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.35)),
+                          border: const OutlineInputBorder(),
+                        ),
                       ),
                     ),
                   ],

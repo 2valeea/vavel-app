@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
@@ -49,6 +50,9 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
   final _nameCtrl = TextEditingController();
   final _subjectCtrl = TextEditingController();
   final _bodyCtrl = TextEditingController();
+  final _nameFocus = FocusNode();
+  final _subjectFocus = FocusNode();
+  final _bodyFocus = FocusNode();
   final _formKey = GlobalKey<FormState>();
 
   List<_SupportMessage> _messages = [];
@@ -63,6 +67,9 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
 
   @override
   void dispose() {
+    _nameFocus.dispose();
+    _subjectFocus.dispose();
+    _bodyFocus.dispose();
     _nameCtrl.dispose();
     _subjectCtrl.dispose();
     _bodyCtrl.dispose();
@@ -120,12 +127,17 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
     final dateFmt = DateFormat('dd MMM yyyy · HH:mm');
     final accent = Theme.of(context).colorScheme.primary;
 
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text(s.supportTitle),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
+      body: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.only(bottom: bottomInset),
+          child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -191,8 +203,10 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
                   _FieldLabel(s.supportNameLabel),
                   const SizedBox(height: 6),
                   _SupportField(
+                    focusNode: _nameFocus,
                     controller: _nameCtrl,
                     hint: s.supportNameLabel,
+                    showPasteButton: true,
                     validator: (v) => (v == null || v.trim().isEmpty)
                         ? '${s.supportNameLabel} required'
                         : null,
@@ -201,8 +215,10 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
                   _FieldLabel(s.supportSubjectLabel),
                   const SizedBox(height: 6),
                   _SupportField(
+                    focusNode: _subjectFocus,
                     controller: _subjectCtrl,
                     hint: s.supportSubjectLabel,
+                    showPasteButton: true,
                     validator: (v) => (v == null || v.trim().isEmpty)
                         ? '${s.supportSubjectLabel} required'
                         : null,
@@ -211,9 +227,12 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
                   _FieldLabel(s.supportMessageLabel),
                   const SizedBox(height: 6),
                   _SupportField(
+                    focusNode: _bodyFocus,
                     controller: _bodyCtrl,
                     hint: s.supportMessageLabel,
                     maxLines: 5,
+                    minLines: 3,
+                    showPasteButton: true,
                     validator: (v) => (v == null || v.trim().isEmpty)
                         ? '${s.supportMessageLabel} required'
                         : null,
@@ -280,7 +299,9 @@ class _SupportScreenState extends ConsumerState<SupportScreen> {
             const SizedBox(height: 24),
           ],
         ),
+        ),
       ),
+    ),
     );
   }
 }
@@ -297,48 +318,96 @@ class _FieldLabel extends StatelessWidget {
 }
 
 class _SupportField extends StatelessWidget {
+  final FocusNode? focusNode;
   final TextEditingController controller;
   final String hint;
   final int maxLines;
+  final int? minLines;
+  final bool showPasteButton;
   final String? Function(String?)? validator;
 
   const _SupportField({
+    this.focusNode,
     required this.controller,
     required this.hint,
     this.maxLines = 1,
+    this.minLines,
+    this.showPasteButton = false,
     this.validator,
   });
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      maxLines: maxLines,
-      validator: validator,
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.25)),
-        filled: true,
-        fillColor: const Color(0xFF1A2A3E),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+    const fill = Color(0xFF1A2A3E);
+    return Material(
+      color: fill,
+      borderRadius: BorderRadius.circular(12),
+      clipBehavior: Clip.antiAlias,
+      child: TextFormField(
+        focusNode: focusNode,
+        controller: controller,
+        enabled: true,
+        readOnly: false,
+        canRequestFocus: true,
+        maxLines: maxLines,
+        minLines: minLines,
+        scrollPadding: const EdgeInsets.only(bottom: 120, top: 24),
+        keyboardType:
+            maxLines > 1 ? TextInputType.multiline : TextInputType.text,
+        textCapitalization: maxLines > 1
+            ? TextCapitalization.sentences
+            : TextCapitalization.none,
+        autocorrect: maxLines > 1,
+        enableSuggestions: maxLines > 1,
+        enableInteractiveSelection: true,
+        smartDashesType: SmartDashesType.disabled,
+        smartQuotesType: SmartQuotesType.disabled,
+        validator: validator,
+        cursorColor: const Color(0xFF2979FF),
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.25)),
+          filled: true,
+          fillColor: fill,
+          isDense: false,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFF2979FF), width: 1.5),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide:
+                BorderSide(color: Colors.redAccent.withValues(alpha: 0.7)),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+          ),
+          suffixIcon: showPasteButton
+              ? IconButton(
+                  tooltip: 'Paste',
+                  icon: const Icon(Icons.content_paste_go_outlined,
+                      color: Colors.white54),
+                  onPressed: () async {
+                    final data =
+                        await Clipboard.getData(Clipboard.kTextPlain);
+                    final t = data?.text;
+                    if (t == null || t.trim().isEmpty) return;
+                    controller.text = t.trim();
+                    controller.selection =
+                        TextSelection.collapsed(offset: controller.text.length);
+                    focusNode?.requestFocus();
+                  },
+                )
+              : null,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF2979FF), width: 1.5),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide:
-              BorderSide(color: Colors.redAccent.withValues(alpha: 0.7)),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
-        ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       ),
     );
   }

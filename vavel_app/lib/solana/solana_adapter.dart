@@ -19,6 +19,10 @@ import 'solana_rpc_failover.dart';
 /// transaction serialization follows the Solana wire format:
 ///   compact-u16 array lengths, little-endian u64 amounts.
 class SolanaAdapter {
+  /// Token-2022 (spl-token-2022) program id.
+  static const String token2022ProgramId =
+      'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
+
   /// Primary Solana cluster RPC endpoint (may contain an embedded API key).
   final String endpoint;
 
@@ -48,6 +52,59 @@ class SolanaAdapter {
       symbol: 'SOL',
       raw: lamports,
       decimals: 9,
+    );
+  }
+
+  /// Token-2022 balance for [owner] and [mint] (e.g. pump.fun coins).
+  ///
+  /// Returns zero with [defaultDecimals] when the wallet has no ATA for this mint.
+  Future<AssetBalance> getToken2022Balance(
+    String owner,
+    String mint, {
+    String assetId = 'tiktok',
+    String symbol = 'tik-tok',
+    int defaultDecimals = 6,
+  }) async {
+    final result = await _rpc('getTokenAccountsByOwner', [
+      owner,
+      {'programId': token2022ProgramId},
+      const {'encoding': 'jsonParsed'},
+    ]);
+    final value = (result is Map && result['value'] is List)
+        ? result['value'] as List<dynamic>
+        : const <dynamic>[];
+    for (final entry in value) {
+      if (entry is! Map) continue;
+      final account = entry['account'];
+      if (account is! Map) continue;
+      final data = account['data'];
+      if (data is! Map) continue;
+      final parsed = data['parsed'];
+      if (parsed is! Map) continue;
+      final info = parsed['info'];
+      if (info is! Map) continue;
+      if ((info['mint'] as String?) != mint) continue;
+      final tokenAmount = info['tokenAmount'];
+      if (tokenAmount is! Map) continue;
+      final amountStr = tokenAmount['amount'] as String? ?? '0';
+      final raw = BigInt.tryParse(amountStr) ?? BigInt.zero;
+      final dec = (tokenAmount['decimals'] is int)
+          ? tokenAmount['decimals'] as int
+          : (tokenAmount['decimals'] is num)
+              ? (tokenAmount['decimals'] as num).toInt()
+              : defaultDecimals;
+      return AssetBalance(
+        assetId: assetId,
+        symbol: symbol,
+        raw: raw,
+        decimals: dec,
+      );
+    }
+    return AssetBalance(
+      assetId: assetId,
+      symbol: symbol,
+      raw: BigInt.zero,
+      decimals: defaultDecimals,
     );
   }
 

@@ -1,6 +1,6 @@
 export 'fee_estimate.dart';
 
-enum AssetType { btc, eth, erc20, sol, ton }
+enum AssetType { btc, eth, erc20, sol, token2022, ton }
 
 class Asset {
   final String id; // e.g. "btc", "eth", "vavel"
@@ -9,6 +9,8 @@ class Asset {
   final AssetType type;
   final int decimals; // BTC=8, ETH=18, ERC20 varies, SOL=9, TON=9
   final String? contract; // ERC20 contract address only
+  /// Solana mint (Token-2022 or classic SPL) for [AssetType.token2022].
+  final String? solanaMint;
   final String? geckoId; // CoinGecko price ID
 
   const Asset({
@@ -18,6 +20,7 @@ class Asset {
     required this.type,
     required this.decimals,
     this.contract,
+    this.solanaMint,
     this.geckoId,
   });
 }
@@ -60,6 +63,17 @@ const kAssetSol = Asset(
   geckoId: 'solana',
 );
 
+/// Pump.fun launch (Token-2022) — [solanaMint] is the on-chain metadata key.
+const kAssetTiktok = Asset(
+  id: 'tiktok',
+  name: 'tik-tok',
+  symbol: 'tik-tok',
+  type: AssetType.token2022,
+  decimals: 6,
+  solanaMint: '8GXhm9R1wYUgnWKUW3bEcUjAENz5EyLkBqQneuvapump',
+  geckoId: null,
+);
+
 const kAssetTon = Asset(
   id: 'ton',
   name: 'TON',
@@ -75,6 +89,7 @@ const List<Asset> kAssets = [
   kAssetBtc,
   kAssetEth,
   kAssetSol,
+  kAssetTiktok,
   kAssetTon
 ];
 

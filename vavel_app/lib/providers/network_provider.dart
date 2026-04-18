@@ -8,7 +8,8 @@ export '../models/network.dart';
 const _kNetworkKey = 'app_network';
 const _storage = FlutterSecureStorage();
 
-/// Persisted active network — defaults to mainnet on first launch.
+/// Persisted active network — **mainnet only** (real BTC / TON / ETH).
+/// Legacy testnet preference is migrated away on load.
 final networkProvider = StateNotifierProvider<NetworkNotifier, AppNetwork>(
     (ref) => NetworkNotifier());
 
@@ -19,11 +20,17 @@ class NetworkNotifier extends StateNotifier<AppNetwork> {
 
   Future<void> _load() async {
     final saved = await _storage.read(key: _kNetworkKey);
-    if (saved == AppNetwork.testnet.name) state = AppNetwork.testnet;
+    if (saved == AppNetwork.testnet.name) {
+      await _storage.write(key: _kNetworkKey, value: AppNetwork.mainnet.name);
+    }
+    state = AppNetwork.mainnet;
   }
 
+  /// Testnet is disabled in the app UI; only mainnet is persisted.
   Future<void> setNetwork(AppNetwork network) async {
-    state = network;
-    await _storage.write(key: _kNetworkKey, value: network.name);
+    final next =
+        network == AppNetwork.testnet ? AppNetwork.mainnet : network;
+    state = next;
+    await _storage.write(key: _kNetworkKey, value: next.name);
   }
 }

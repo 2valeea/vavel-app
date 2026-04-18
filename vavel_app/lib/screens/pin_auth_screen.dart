@@ -126,12 +126,17 @@ class _PinAuthScreenState extends ConsumerState<PinAuthScreen> {
               ],
             ),
             if (_loading)
-              const ColoredBox(
-                color: Colors.black26,
-                child: Center(
-                  child: CircularProgressIndicator(
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(Color(0xFF2979FF)),
+              const Positioned.fill(
+                child: AbsorbPointer(
+                  child: ColoredBox(
+                    color: Colors.black26,
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Color(0xFF2979FF),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),

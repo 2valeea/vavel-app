@@ -83,7 +83,7 @@ class ReceiveScreen extends StatelessWidget {
 
               // Hint
               Text(
-                'Send only ${id.ticker}${id == AssetId.vavel ? ' (ERC-20)' : ''} to this address. '
+                'Send only ${id.ticker}${id == AssetId.vavel ? ' (ERC-20)' : id == AssetId.tiktok ? ' (SPL Token-2022 on Solana, same address as SOL)' : ''} to this address. '
                 'Sending other assets may result in permanent loss.',
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.grey, fontSize: 12),

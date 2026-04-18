@@ -16,7 +16,7 @@ import '../solana/solana_adapter.dart';
 import '../ton/ton_adapter.dart';
 import '../ethereum/ethereum_adapter.dart' show EthereumProvider;
 import '../bitcoin/bitcoin_adapter.dart' show BitcoinProvider;
-import '../models/asset.dart' show AssetBalance;
+import '../models/asset.dart' show AssetBalance, kAssetTiktok;
 import '../models/asset_id.dart';
 import '../utils/address_recipient_normalizer.dart';
 import '../utils/ens_utils.dart';
@@ -174,6 +174,18 @@ class WalletService {
     final results = await Future.wait<AssetBalance>([
       safe(() => _sol.getBalance(_sol.addressFromKeypair(solKp)), 'sol', 'SOL',
           9),
+      safe(
+        () => _sol.getToken2022Balance(
+          _sol.addressFromKeypair(solKp),
+          kAssetTiktok.solanaMint!,
+          assetId: 'tiktok',
+          symbol: kAssetTiktok.symbol,
+          defaultDecimals: kAssetTiktok.decimals,
+        ),
+        'tiktok',
+        'tik-tok',
+        6,
+      ),
       safe(() => _ton.getBalance(_ton.getAddress(publicKey: tonKp.publicKey)),
           'ton', 'TON', 9),
       safe(() => _eth.getBalance(ethKp.address), 'eth', 'ETH', 18),
@@ -184,10 +196,11 @@ class WalletService {
     return WalletBalances(
       {
         'sol': results[0],
-        'ton': results[1],
-        'eth': results[2],
-        'vavel': results[3],
-        'btc': results[4],
+        'tiktok': results[1],
+        'ton': results[2],
+        'eth': results[3],
+        'vavel': results[4],
+        'btc': results[5],
       },
       errors: chainErrors,
     );

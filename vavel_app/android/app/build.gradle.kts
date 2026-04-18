@@ -1,5 +1,6 @@
+import java.util.Base64
 import java.util.Properties
-import java.io.FileInputStream
+import java.io.StringReader
 
 plugins {
     id("com.android.application")
@@ -8,11 +9,30 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// WalletConnect / Reown: optional `WC_PROJECT_ID=…` in android/local.properties
+// (gitignored). Merged with `--dart-define` from `flutter build` as base64
+// `KEY=value` entries (Flutter convention).
+val localPropertiesFile = rootProject.file("local.properties")
+val localForDartDefines = Properties()
+if (localPropertiesFile.exists()) {
+    localForDartDefines.load(localPropertiesFile.inputStream())
+}
+val wcProjectId = localForDartDefines.getProperty("WC_PROJECT_ID")?.trim().orEmpty()
+if (wcProjectId.isNotEmpty()) {
+    val entry = Base64.getEncoder()
+        .encodeToString("WC_PROJECT_ID=$wcProjectId".toByteArray(Charsets.UTF_8))
+    val existing = (findProperty("dart-defines") as String?)?.trim().orEmpty()
+    val merged =
+        if (existing.isEmpty()) entry else "$existing,$entry"
+    extra.set("dart-defines", merged)
+}
+
 val keyPropertiesFile = rootProject.file("key.properties")
 val keyProperties = Properties()
 val hasReleaseKeystore = keyPropertiesFile.exists()
 if (hasReleaseKeystore) {
-    keyProperties.load(FileInputStream(keyPropertiesFile))
+    val raw = keyPropertiesFile.readText(Charsets.UTF_8).removePrefix("\uFEFF")
+    keyProperties.load(StringReader(raw))
 }
 
 // Firebase Android config: add android/app/google-services.json from Firebase Console,

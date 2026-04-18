@@ -45,6 +45,11 @@ class VavelApp extends ConsumerWidget {
           secondary: Color(0xFF2979FF),
           surface: Color(0xFF1A2A3E),
         ),
+        textSelectionTheme: const TextSelectionThemeData(
+          cursorColor: Color(0xFF2979FF),
+          selectionColor: Color(0x552979FF),
+          selectionHandleColor: Color(0xFF2979FF),
+        ),
         pageTransitionsTheme: const PageTransitionsTheme(
           builders: {
             TargetPlatform.android: ZoomPageTransitionsBuilder(),
@@ -81,33 +86,17 @@ class _AppRouter extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final route = ref.watch(appRouteProvider);
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 400),
-      switchInCurve: Curves.easeOutCubic,
-      switchOutCurve: Curves.easeInCubic,
-      transitionBuilder: (child, animation) {
-        final curved = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-          reverseCurve: Curves.easeInCubic,
-        );
-        return FadeTransition(
-          opacity: curved,
-          child: ScaleTransition(
-            scale: Tween<double>(begin: 0.988, end: 1).animate(curved),
-            child: child,
-          ),
-        );
+    // Do not use AnimatedSwitcher here: during the cross-fade the *outgoing*
+    // route can stay above the incoming one in the hit-test stack, so taps
+    // and TextFields on Home / Send / Support appear "dead" until animation ends.
+    return KeyedSubtree(
+      key: ValueKey<AppRoute>(route),
+      child: switch (route) {
+        AppRoute.setup => const SetupScreen(),
+        AppRoute.pinAuth => const PinAuthScreen(),
+        AppRoute.home => const HomeScreen(),
+        AppRoute.dappConnect => const DappConnectScreen(),
       },
-      child: KeyedSubtree(
-        key: ValueKey<AppRoute>(route),
-        child: switch (route) {
-          AppRoute.setup => const SetupScreen(),
-          AppRoute.pinAuth => const PinAuthScreen(),
-          AppRoute.home => const HomeScreen(),
-          AppRoute.dappConnect => const DappConnectScreen(),
-        },
-      ),
     );
   }
 }

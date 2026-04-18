@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/address_book_entry.dart';
 import '../providers/address_book_provider.dart';
@@ -15,6 +16,8 @@ import '../utils/sensitive_action_auth.dart';
 import '../widgets/service_fee_consent_dialog.dart';
 import '../widgets/ethereum_send_gas_card.dart';
 import '../models/asset_id.dart';
+import '../navigation/premium_page_route.dart';
+import 'address_book_screen.dart';
 
 class SendScreen extends ConsumerStatefulWidget {
   final AssetId assetId;
@@ -29,6 +32,8 @@ class SendScreen extends ConsumerStatefulWidget {
 class _SendScreenState extends ConsumerState<SendScreen> {
   final _toController = TextEditingController();
   final _amountController = TextEditingController();
+  final _toFocus = FocusNode();
+  final _amountFocus = FocusNode();
   bool _sending = false;
   String? _error;
   String? _txHash;
@@ -47,9 +52,22 @@ class _SendScreenState extends ConsumerState<SendScreen> {
 
   @override
   void dispose() {
+    _toFocus.dispose();
+    _amountFocus.dispose();
     _toController.dispose();
     _amountController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pasteRecipientAddress() async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    final t = data?.text?.trim();
+    if (t == null || t.isEmpty || !mounted) return;
+    setState(() {
+      _toController.text = t;
+      _toController.selection = TextSelection.collapsed(offset: t.length);
+    });
+    _toFocus.requestFocus();
   }
 
   Future<void> _pickFromAddressBook() async {
@@ -57,10 +75,12 @@ class _SendScreenState extends ConsumerState<SendScreen> {
     final forAsset = addressBookForAsset(book, widget.assetId);
     if (!mounted) return;
     if (forAsset.isEmpty) {
+      await pushPremium(context, const AddressBookScreen());
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'No saved ${widget.assetId.ticker} contacts. Add some in Settings → Address book.',
+            'Add a ${widget.assetId.ticker} contact here, then tap Contacts again on Send.',
           ),
           behavior: SnackBarBehavior.floating,
         ),
@@ -104,6 +124,14 @@ class _SendScreenState extends ConsumerState<SendScreen> {
   Future<void> _send() async {
     final toInput = _toController.text.trim();
     final amountStr = _amountController.text.trim();
+    if (widget.assetId == AssetId.tiktok) {
+      setState(() {
+        _error =
+            'Отправка токена tik-tok (pump.fun, Token-2022) в этом приложении ещё не подключена. '
+            'Скопируйте Solana-адрес на экране «Получить» и используйте Phantom, Solflare или другое кошелёк с Token-2022.';
+      });
+      return;
+    }
     if (toInput.isEmpty || amountStr.isEmpty) {
       setState(() => _error = 'Please fill in all fields.');
       return;
@@ -234,6 +262,8 @@ class _SendScreenState extends ConsumerState<SendScreen> {
 
     // Теперь отправляем основную транзакцию
     switch (widget.assetId) {
+      case AssetId.tiktok:
+        throw StateError('tik-tok: send is handled before _performSend');
       case AssetId.sol:
         hash = await service.sendSolana(to, amount);
         break;
@@ -279,13 +309,17 @@ class _SendScreenState extends ConsumerState<SendScreen> {
   Widget build(BuildContext context) {
     final id = widget.assetId;
     final s = ref.watch(stringsProvider);
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text('Send ${id.ticker}'),
         centerTitle: true,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.only(bottom: bottomInset),
+          child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -315,41 +349,38 @@ class _SendScreenState extends ConsumerState<SendScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              Semantics(
-                label: 'Fee summary',
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      s.sendFeeLineService,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF0D47A1),
-                        height: 1.35,
-                      ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    s.sendFeeLineService,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF0D47A1),
+                      height: 1.35,
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      s.sendFeeLineNetwork,
-                      style: TextStyle(
-                        fontSize: 13,
-                        height: 1.35,
-                        color: Colors.grey.shade800,
-                      ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    s.sendFeeLineNetwork,
+                    style: TextStyle(
+                      fontSize: 13,
+                      height: 1.35,
+                      color: Colors.grey.shade800,
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      s.sendFeeSmallTransferNote,
-                      style: TextStyle(
-                        fontSize: 12,
-                        height: 1.35,
-                        color: Colors.grey.shade700,
-                        fontStyle: FontStyle.italic,
-                      ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    s.sendFeeSmallTransferNote,
+                    style: TextStyle(
+                      fontSize: 12,
+                      height: 1.35,
+                      color: Colors.grey.shade700,
+                      fontStyle: FontStyle.italic,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
               // From
               const _SectionLabel('From'),
@@ -371,9 +402,17 @@ class _SendScreenState extends ConsumerState<SendScreen> {
               const SizedBox(height: 20),
 
               // To
-              Row(
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 8,
                 children: [
-                  const Expanded(child: _SectionLabel('Recipient Address')),
+                  const _SectionLabel('Recipient Address'),
+                  TextButton.icon(
+                    onPressed: _pasteRecipientAddress,
+                    icon: const Icon(Icons.content_paste_go_outlined, size: 18),
+                    label: const Text('Paste'),
+                  ),
                   TextButton.icon(
                     onPressed: _pickFromAddressBook,
                     icon: const Icon(Icons.contact_mail_outlined, size: 18),
@@ -383,10 +422,12 @@ class _SendScreenState extends ConsumerState<SendScreen> {
               ),
               const SizedBox(height: 6),
               _WalletTextField(
+                focusNode: _toFocus,
                 controller: _toController,
                 hint: (id == AssetId.eth || id == AssetId.vavel)
                     ? '0x… or name.eth'
                     : 'Enter ${id.ticker} address',
+                showPasteButton: true,
               ),
               const SizedBox(height: 20),
 
@@ -394,6 +435,7 @@ class _SendScreenState extends ConsumerState<SendScreen> {
               _SectionLabel('Amount (${id.ticker})'),
               const SizedBox(height: 6),
               _WalletTextField(
+                focusNode: _amountFocus,
                 controller: _amountController,
                 hint: '0.00',
                 keyboardType:
@@ -497,6 +539,7 @@ class _SendScreenState extends ConsumerState<SendScreen> {
             ],
           ),
         ),
+        ),
       ),
     );
   }
@@ -518,33 +561,76 @@ class _SectionLabel extends StatelessWidget {
 }
 
 class _WalletTextField extends StatelessWidget {
+  final FocusNode? focusNode;
   final TextEditingController controller;
   final String hint;
   final TextInputType keyboardType;
+  final bool showPasteButton;
 
   const _WalletTextField({
+    this.focusNode,
     required this.controller,
     required this.hint,
     this.keyboardType = TextInputType.text,
+    this.showPasteButton = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(color: Colors.grey),
-        filled: true,
-        fillColor: const Color(0xFF1A2A3E),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+    const fill = Color(0xFF1A2A3E);
+    return Material(
+      color: fill,
+      borderRadius: BorderRadius.circular(12),
+      clipBehavior: Clip.antiAlias,
+      child: TextField(
+        focusNode: focusNode,
+        controller: controller,
+        enabled: true,
+        readOnly: false,
+        canRequestFocus: true,
+        keyboardType: keyboardType,
+        textCapitalization: TextCapitalization.none,
+        autocorrect: false,
+        enableSuggestions: false,
+        smartDashesType: SmartDashesType.disabled,
+        smartQuotesType: SmartQuotesType.disabled,
+        scrollPadding: const EdgeInsets.only(bottom: 120, top: 24),
+        cursorColor: const Color(0xFF2979FF),
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: const TextStyle(color: Colors.grey),
+          filled: true,
+          fillColor: fill,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide:
+                const BorderSide(color: Color(0xFF2979FF), width: 1.5),
+          ),
+          suffixIcon: showPasteButton
+              ? IconButton(
+                  tooltip: 'Paste',
+                  icon: const Icon(Icons.content_paste_go_outlined,
+                      color: Colors.white54),
+                  onPressed: () async {
+                    final data =
+                        await Clipboard.getData(Clipboard.kTextPlain);
+                    final t = data?.text?.trim();
+                    if (t == null || t.isEmpty) return;
+                    controller.text = t;
+                    controller.selection =
+                        TextSelection.collapsed(offset: t.length);
+                    focusNode?.requestFocus();
+                  },
+                )
+              : null,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
     );
   }

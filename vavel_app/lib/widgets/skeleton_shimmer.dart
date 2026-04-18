@@ -71,47 +71,68 @@ class HomeAssetTileSkeleton extends StatelessWidget {
         color: const Color(0xFF1A2A3E),
         borderRadius: BorderRadius.circular(14),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SkeletonPulse(width: 44, height: 44, borderRadius: BorderRadius.all(Radius.circular(22))),
-          const SizedBox(width: 14),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          const Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SkeletonPulse(
+                  width: 44,
+                  height: 44,
+                  borderRadius:
+                      BorderRadius.all(Radius.circular(22))),
+              SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SkeletonPulse(
+                        width: 120,
+                        height: 14,
+                        borderRadius:
+                            BorderRadius.all(Radius.circular(6))),
+                    SizedBox(height: 8),
+                    SkeletonPulse(
+                        width: 90,
+                        height: 12,
+                        borderRadius:
+                            BorderRadius.all(Radius.circular(6))),
+                  ],
+                ),
+              ),
+              SizedBox(width: 8),
+              SkeletonPulse(
+                  width: 72,
+                  height: 16,
+                  borderRadius: BorderRadius.all(Radius.circular(6))),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              alignment: WrapAlignment.end,
               children: [
-                SkeletonPulse(width: 120, height: 14, borderRadius: BorderRadius.all(Radius.circular(6))),
-                SizedBox(height: 8),
-                SkeletonPulse(width: 90, height: 12, borderRadius: BorderRadius.all(Radius.circular(6))),
+                SkeletonPulse(
+                  width: 52,
+                  height: 28,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                SkeletonPulse(
+                  width: 62,
+                  height: 28,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                SkeletonPulse(
+                  width: 52,
+                  height: 28,
+                  borderRadius: BorderRadius.circular(20),
+                ),
               ],
             ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              const SkeletonPulse(width: 72, height: 16, borderRadius: BorderRadius.all(Radius.circular(6))),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  SkeletonPulse(
-                    width: 52,
-                    height: 26,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  const SizedBox(width: 6),
-                  SkeletonPulse(
-                    width: 62,
-                    height: 26,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  const SizedBox(width: 6),
-                  SkeletonPulse(
-                    width: 52,
-                    height: 26,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ],
-              ),
-            ],
           ),
         ],
       ),

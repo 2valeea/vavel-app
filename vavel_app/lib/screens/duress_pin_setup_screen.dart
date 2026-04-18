@@ -125,9 +125,15 @@ class _DuressPinSetupScreenState extends State<DuressPinSetupScreen> {
                 ],
               ),
               if (_loading)
-                const ColoredBox(
-                  color: Colors.black26,
-                  child: Center(child: CircularProgressIndicator()),
+                const Positioned.fill(
+                  child: AbsorbPointer(
+                    child: ColoredBox(
+                      color: Colors.black26,
+                      child: Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                  ),
                 ),
             ],
           ),
