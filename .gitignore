@@ -9,3 +9,9 @@ _export_zip_staging/
 
 # Local release keystore (never commit).
 vavel-release.jks
+
+# One-off local APK/AAB handoff (large binaries; do not commit).
+release_production_artifacts/
+
+# Local secrets
+vavel_app/.env

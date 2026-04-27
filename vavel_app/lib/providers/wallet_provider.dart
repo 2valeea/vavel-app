@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../services/auth_service.dart';
+import '../stripe/stripe_unlock_store.dart';
 import '../services/wallet_service.dart';
 import '../services/wallet_service_factory.dart';
 import '../secure_storage/keychain_store.dart';
@@ -27,9 +30,9 @@ final walletServiceProvider = Provider<WalletService>((ref) {
 
 // ── App state ─────────────────────────────────────────────────────────────
 
-enum AppRoute { setup, pinAuth, home, dappConnect }
+enum AppRoute { setup, pinAuth, paywall, paymentThanks, home }
 
-/// After unlock with the **panic (duress) PIN**: decoy portfolio, no send/swap/WC/receive addrs.
+/// After unlock with the **panic (duress) PIN**: decoy portfolio, no send/swap/receive addrs.
 final duressModeProvider = StateProvider<bool>((ref) => false);
 
 final duressPinConfiguredProvider = FutureProvider<bool>(
@@ -55,6 +58,25 @@ class AppRouteNotifier extends StateNotifier<AppRoute> {
 
   void goHome({bool duress = false}) {
     _ref.read(duressModeProvider.notifier).state = duress;
+    if (duress) {
+      state = AppRoute.home;
+      return;
+    }
+    unawaited(_goHomeAfterAccessCheck());
+  }
+
+  Future<void> _goHomeAfterAccessCheck() async {
+    final unlocked = await StripeUnlockStore.isUnlocked();
+    state = unlocked ? AppRoute.home : AppRoute.paywall;
+  }
+
+  /// After Stripe Checkout verification (deep link) — show thank-you screen.
+  void completeStripeCheckoutAndShowThanks() {
+    state = AppRoute.paymentThanks;
+  }
+
+  /// Thank-you screen → wallet home.
+  void leavePaymentThanksToHome() {
     state = AppRoute.home;
   }
 
@@ -64,8 +86,6 @@ class AppRouteNotifier extends StateNotifier<AppRoute> {
     _ref.read(duressModeProvider.notifier).state = false;
     state = AppRoute.pinAuth;
   }
-
-  void goDappConnect() => state = AppRoute.dappConnect;
 }
 
 // ── Wallet addresses ──────────────────────────────────────────────────────
@@ -75,6 +95,6 @@ final walletAddressesProvider = FutureProvider<WalletAddresses>((ref) async {
   return service.getAddresses();
 });
 
-// ── Mnemonic generation (temporary, for backup screen) ────────────────────
+// ── Mnemonic generation (backup screen) ───────────────────────────────────
 
 final pendingMnemonicProvider = StateProvider<String?>((ref) => null);

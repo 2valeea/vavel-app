@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../navigation/premium_page_route.dart';
+import '../providers/locale_provider.dart';
 import '../providers/wallet_provider.dart';
 import '../crypto/mnemonic.dart';
 import 'mnemonic_backup_screen.dart';
@@ -60,6 +61,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = ref.watch(stringsProvider);
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -80,10 +82,10 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              const Text(
-                'VAVEL WALLET',
+              Text(
+                s.appTitle,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 2,

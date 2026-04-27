@@ -314,7 +314,7 @@ class _AddressBookScreenState extends ConsumerState<AddressBookScreen> {
   ) async {
     final labelCtrl = TextEditingController(text: existing?.label);
     final addrCtrl = TextEditingController(text: existing?.address);
-    AssetId asset = AssetId.eth;
+    AssetId asset = AssetId.sol;
     if (existing != null) {
       for (final a in AssetId.values) {
         if (a.name == existing.assetKey) {
@@ -387,16 +387,15 @@ class _AddressBookScreenState extends ConsumerState<AddressBookScreen> {
                         cursorColor: const Color(0xFF2979FF),
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          labelText:
-                              (asset == AssetId.eth || asset == AssetId.vavel)
-                                  ? 'Address or .eth name'
-                                  : 'Address',
+                          labelText: 'Address',
                           labelStyle:
                               const TextStyle(color: Colors.white70),
-                          hintText:
-                              (asset == AssetId.eth || asset == AssetId.vavel)
-                                  ? '0x… or vitalik.eth'
-                                  : null,
+                          hintText: switch (asset) {
+                            AssetId.eth || AssetId.vaval => '0x… or vitalik.eth',
+                            AssetId.ton => 'UQ… / EQ…',
+                            AssetId.tiktok => 'Same base58 as SOL',
+                            AssetId.sol => 'Base58 public key',
+                          },
                           hintStyle: TextStyle(
                               color: Colors.white.withValues(alpha: 0.35)),
                           border: const OutlineInputBorder(),

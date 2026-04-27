@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+﻿import 'dart:typed_data';
 
 import 'package:web3dart/web3dart.dart';
 import 'package:web3dart/json_rpc.dart' show RPCError;
@@ -177,21 +177,29 @@ class EthereumProvider {
   }
 
   Future<AssetBalance> getTokenBalance(String address) async {
-    if (!RpcConfig.vavelTokenConfigured) {
+    if (isDisabled) {
       return AssetBalance(
-        assetId: 'vavel',
-        symbol: 'VAVEL',
+        assetId: 'vaval',
+        symbol: 'VAVAL',
+        raw: BigInt.zero,
+        decimals: _vavelDecimals,
+      );
+    }
+    if (!RpcConfig.vavalTokenConfigured) {
+      return AssetBalance(
+        assetId: 'vaval',
+        symbol: 'VAVAL',
         raw: BigInt.zero,
         decimals: _vavelDecimals,
       );
     }
     final raw = await getErc20Balance(
-      contract: RpcConfig.vavelTokenContract.trim(),
+      contract: RpcConfig.vavalTokenContract.trim(),
       owner: address,
     );
     return AssetBalance(
-      assetId: 'vavel',
-      symbol: 'VAVEL',
+      assetId: 'vaval',
+      symbol: 'VAVAL',
       raw: raw,
       decimals: _vavelDecimals,
     );
@@ -251,15 +259,15 @@ class EthereumProvider {
       throw StateError('Ethereum is disabled (DISABLE_ETH=true). '
           'Remove the flag or set --dart-define=ETH_RPC_URL=https://... to enable ETH.');
     }
-    if (!RpcConfig.vavelTokenConfigured) {
+    if (!RpcConfig.vavalTokenConfigured) {
       throw StateError(
-        'VAVEL token contract not configured. '
-        'Pass --dart-define=VAVEL_TOKEN_CONTRACT=0x...',
+        'VAVAL token contract not configured. '
+        'Pass --dart-define=VAVAL_TOKEN_CONTRACT=0x...',
       );
     }
     final contract = DeployedContract(
-      ContractAbi.fromJson(_erc20Abi, 'VAVEL'),
-      EthereumAddress.fromHex(RpcConfig.vavelTokenContract.trim()),
+      ContractAbi.fromJson(_erc20Abi, 'VAVAL'),
+      EthereumAddress.fromHex(RpcConfig.vavalTokenContract.trim()),
     );
     final transfer = contract.function('transfer');
     final rawAmount = BigInt.from((vavelAmount * 1e18).toInt());

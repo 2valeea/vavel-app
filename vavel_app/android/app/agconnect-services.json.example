@@ -1,0 +1,16 @@
+{
+  "client": {
+    "app_id": "1:YOUR_APPID_FROM_APPCONNECT:android:default",
+    "app_info": {
+      "package_name": "com.vavel.official.wallet",
+      "app_id": "YOUR_HUAWEI_APPID"
+    },
+    "type": 1
+  },
+  "configuration_version": "3.0",
+  "grs_sdk_global_url": "https://grs.dbankcloud.com",
+  "grs_sdk_server_config_url": "https://grs.dbankcloud.com",
+  "grs_url": "https://grs.dbankcloud.com",
+  "package_name": "com.vavel.official.wallet",
+  "version": 3
+}

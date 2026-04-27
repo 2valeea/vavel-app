@@ -9,7 +9,7 @@ import 'package:flutter/services.dart';
 class SecureWindow {
   SecureWindow._();
 
-  static const _channel = MethodChannel('com.vavel.vavel_wallet/secure_window');
+  static const _channel = MethodChannel('com.vavel.official.wallet/secure_window');
 
   static int _depth = 0;
 

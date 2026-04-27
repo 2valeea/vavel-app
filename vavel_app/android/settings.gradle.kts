@@ -15,6 +15,8 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
         maven { url = uri("https://jitpack.io") }
+        // Huawei (AppGallery / HMS tooling)
+        maven { url = uri("https://developer.huawei.com/repo/") }
     }
 }
 

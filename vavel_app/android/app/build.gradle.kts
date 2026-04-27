@@ -35,15 +35,12 @@ if (hasReleaseKeystore) {
     keyProperties.load(StringReader(raw))
 }
 
-// Firebase Android config: add android/app/google-services.json from Firebase Console,
-// then sync. Build works without it (plugin not applied).
-val googleServicesJson = file("google-services.json")
-if (googleServicesJson.exists()) {
-    apply(plugin = "com.google.gms.google-services")
-}
+// Firebase: use android/app/google-services.json. HMS: use agconnect-services.json.
+// Conditional applies are at the end of this file (after android/flutter) so the
+// com.android / Flutter plugin graph is not disrupted.
 
 android {
-    namespace = "com.vavel.vavel_wallet"
+    namespace = "com.vavel.official.wallet"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -68,11 +65,11 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.vavel.vavel_wallet"
+        applicationId = "com.vavel.official.wallet"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        versionCode = 4
+        versionName = "1.0.1"
     }
 
     buildTypes {
@@ -92,4 +89,17 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // Native push provider detection (see MainActivity: GMS vs HMS)
+    implementation("com.google.android.gms:play-services-base:18.5.0")
+    implementation("com.huawei.hms:base:6.11.0.300")
+}
+
+// GMS: place `android/app/google-services.json`. AppGallery: add `agconnect-services.json` + AGC
+// per Huawei; avoid root-`buildscript` for `agcp` here (breaks this Flutter+Kotlin app script).
+val googleServicesJson = file("google-services.json")
+if (googleServicesJson.exists()) {
+    apply(plugin = "com.google.gms.google-services")
 }

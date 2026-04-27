@@ -16,7 +16,7 @@ class TermsOfServiceScreen extends ConsumerWidget {
         _LegalSection(
           heading: '1. Acceptance and eligibility',
           body:
-              'By downloading or using Vavel Wallet (the “App”), you agree to these Terms of Service. If you do not agree, '
+              'By downloading or using Wallet Vaval (the “App”), you agree to these Terms of Service. If you do not agree, '
               'do not use the App. You represent that you are of legal age in your jurisdiction to use a digital-asset wallet. '
               'The App is not offered where use would violate applicable law. Governing law, dispute venue, and operator contact '
               'must be completed with qualified counsel before commercial distribution.',
@@ -38,26 +38,23 @@ class TermsOfServiceScreen extends ConsumerWidget {
         _LegalSection(
           heading: '4. Third-party networks and services',
           body:
-              'The App interacts with public blockchains, RPC providers, indexers, WalletConnect-compatible dApps, and other third '
-              'parties you may choose. We do not control and are not responsible for their availability, fees, forks, upgrades, '
-              'censorship, or malicious behavior.',
+              'The App interacts with public blockchains, RPC providers, indexers, and other third parties you may choose. We do not '
+              'control and are not responsible for their availability, fees, forks, upgrades, censorship, or malicious behavior.',
         ),
         _LegalSection(
-          heading: '5. App service fee (1 VAVEL, EVM)',
+          heading: '5. One-time app access (Stripe)',
           body:
-              'When you confirm a send of a supported asset, the App will first submit a separate on-chain EVM transaction that '
-              'transfers exactly 1 VAVEL (the project token on the configured network) to the operator wallet '
-              '0xebeaba868348cec64a2712c7d23936af919b09e2. This is a fixed in-app service fee for use of the send flow, distinct '
-              'from blockchain network fees. If your VAVEL balance is below 1 VAVEL, the send will not proceed. Because the fee '
-              'is fixed, it may represent a high percentage of very small transfers; you should review totals before you confirm. '
-              'By confirming, you authorize this fee transaction in addition to your main transfer.',
+              'Full use of the App (including send, receive, and other wallet features) requires a one-time payment of about '
+              'US\$2.99 (plus applicable taxes) processed by Stripe at checkout. This fee is paid to the app operator and is '
+              'separate from any blockchain network fees you pay later when moving assets on-chain. Refunds, if any, follow '
+              'Stripe’s policies and any consumer rules that apply in your region.',
         ),
         _LegalSection(
           heading: '6. Network (miner / validator) fees',
           body:
-              'Blockchains impose their own fees (e.g. gas on Ethereum-compatible networks, native fees on other chains). Those '
-              'amounts are paid to the network or its validators/miners and are not the same as the 1 VAVEL app service fee. '
-              'Network fees vary with congestion, chain rules, and any gas settings you select where applicable.',
+              'Ethereum (including ETH and ERC-20 VAVAL), Solana, and TON impose their own native fees when you send transactions. '
+              'Those amounts are paid to the network or its validators/miners. Network fees vary with congestion and the fee '
+              'settings you choose where applicable.',
         ),
         _LegalSection(
           heading: '7. No warranty; limitation of liability',
@@ -107,7 +104,7 @@ class PrivacyPolicyScreen extends ConsumerWidget {
         _LegalSection(
           heading: '1. Overview',
           body:
-              'This Privacy Policy explains how information is handled when you use Vavel Wallet (the “App”). The App is designed '
+              'This Privacy Policy explains how information is handled when you use Wallet Vaval (the “App”). The App is designed '
               'to minimize collection of personal data: keys and seed material stay on your device. This draft must be finalized '
               'with counsel to address local law (including GDPR, UK GDPR, CCPA/CPRA where relevant) before commercial release.',
         ),
@@ -126,48 +123,55 @@ class PrivacyPolicyScreen extends ConsumerWidget {
               'vendor’s documentation; list each SDK and lawful basis in the final policy.',
         ),
         _LegalSection(
-          heading: '4. On-chain data and the 1 VAVEL service fee',
+          heading: '4. On-chain data',
           body:
-              'Transfers—including the fixed 1 VAVEL service fee to 0xebeaba868348cec64a2712c7d23936af919b09e2 and your main send—are '
-              'recorded on public blockchains. That information is not secret: addresses, amounts, and transaction hashes may appear '
-              'on explorers indefinitely. Signing occurs in the App on your device; we do not need your seed phrase on our servers '
-              'to perform those transactions.',
+              'When you send or receive digital assets, the resulting transactions are recorded on public blockchains. That '
+              'information is not secret: addresses, amounts, and transaction hashes may appear on explorers indefinitely. '
+              'Signing occurs in the App on your device; we do not need your seed phrase on our servers to perform those '
+              'transactions.',
         ),
         _LegalSection(
-          heading: '5. Your choices and retention',
+          heading: '5. Stripe payment',
+          body:
+              'If you pay the one-time access fee (about US\$2.99), Stripe processes card and billing details under Stripe’s privacy policy. We do '
+              'not store your full card number in the App. The App stores a local flag on your device indicating that access has '
+              'been unlocked after a successful payment.',
+        ),
+        _LegalSection(
+          heading: '6. Your choices and retention',
           body:
               'You may stop using the App at any time, revoke push permissions in OS settings, and clear local data where the App '
               'provides controls. Blockchain records cannot be erased by us. Describe concrete retention periods for any server-side '
               'logs (if introduced later) in the final policy.',
         ),
         _LegalSection(
-          heading: '6. Children',
+          heading: '7. Children',
           body:
               'The App is not directed at children. We do not knowingly collect personal information from anyone under 13 (or the '
               'higher age required by local law for digital consent). If you believe a child has provided information, contact us '
               'using the contact method your counsel adds to the final policy.',
         ),
         _LegalSection(
-          heading: '7. International users and transfers',
+          heading: '8. International users and transfers',
           body:
               'Users may access the App from multiple countries. If personal data is processed across borders, the final policy should '
               'identify legal mechanisms (e.g. Standard Contractual Clauses) appropriate to your setup.',
         ),
         _LegalSection(
-          heading: '8. Security',
+          heading: '9. Security',
           body:
               'We implement reasonable technical and organizational measures consistent with a non-custodial mobile wallet. No method '
               'of transmission or storage is 100% secure; you accept residual risk.',
         ),
         _LegalSection(
-          heading: '9. Your rights and how to contact us',
+          heading: '10. Your rights and how to contact us',
           body:
               'Depending on your jurisdiction, you may have rights to access, correct, delete, or port personal data we hold about you, '
               'or to object to certain processing. Insert operator contact email, postal address, and data-protection contact in the '
               'final version, plus any required Data Protection Officer details.',
         ),
         _LegalSection(
-          heading: '10. Changes to this Policy',
+          heading: '11. Changes to this Policy',
           body:
               'We may update this Policy when the product or law changes. Material updates should be communicated in-app or by other '
               'reasonable means. The “effective date” at the top should be maintained in the final document.',

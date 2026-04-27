@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 /// The [statusCode], first 200 chars of [bodyStart], and response [headers]
 /// are preserved so callers can log or display a meaningful error message.
 ///
-/// Used across all chains (Ethereum, TON, Solana, Bitcoin).
+/// Used for JSON-RPC style HTTP calls (e.g. Solana, TON).
 class NonJsonRpcResponse implements Exception {
   final int statusCode;
   final String bodyStart;
@@ -61,11 +61,11 @@ class NonJsonRpcResponse implements Exception {
   String get userMessage {
     if (isAuthError) {
       return 'RPC endpoint requires an API key or access is denied (HTTP $statusCode). '
-          'Pass a valid --dart-define=ETH_RPC_URL=https://... with your API key.';
+          'Configure SOLANA_RPC_PRIMARY / TONCENTER_API_KEY via --dart-define as documented in settings.';
     }
     if (isRateLimited) {
       return 'RPC endpoint is rate-limited (HTTP 429). '
-          'Use an authenticated endpoint with --dart-define=ETH_RPC_URL=https://...';
+          'Use an authenticated RPC endpoint via --dart-define.';
     }
     return 'RPC endpoint returned a non-JSON response (HTTP $statusCode): "$bodyStart"';
   }
@@ -85,9 +85,9 @@ class NonJsonRpcResponse implements Exception {
 /// NOTE: validation is done on the body content itself, not the Content-Type
 /// header. Some servers (e.g. llamarpc) return `Content-Type: application/json`
 /// alongside a plain-text body like "Must be authenticated", which would fool
-/// a header-based check and let web3dart call jsonDecode() on non-JSON content.
+/// a header-based check and let callers call jsonDecode() on non-JSON content.
 ///
-/// Used across all chains (Ethereum, TON, Solana, Bitcoin).
+/// Used for Solana, TON, and similar JSON-over-HTTP APIs.
 ///
 /// Usage:
 /// ```dart
@@ -110,7 +110,7 @@ class SafeHttpClient extends http.BaseClient {
     // Validate the body itself, not the Content-Type header: some servers
     // return "Must be authenticated" or other plain-text error messages with
     // `Content-Type: application/json`, which would fool a header-based check
-    // and let web3dart call jsonDecode() on non-JSON content.
+    // and let jsonDecode() run on non-JSON content.
     final looksJson = trimmed.startsWith('{') || trimmed.startsWith('[');
 
     if (!looksJson) {

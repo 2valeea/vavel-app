@@ -14,6 +14,9 @@
 -keepattributes *Annotation*
 -dontwarn com.google.firebase.**
 -dontwarn com.google.android.gms.**
+# Huawei Mobile Services (Push Kit + availability checks)
+-keep class com.huawei.hms.** { *; }
+-dontwarn com.huawei.hms.**
 
 # Kotlin / coroutines
 -keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}

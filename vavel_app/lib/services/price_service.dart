@@ -1,22 +1,19 @@
 import 'package:dio/dio.dart';
 
-/// Supported symbols and their CoinGecko IDs (used in fallback path).
 const _symbolToGeckoId = {
-  'BTC': 'bitcoin',
   'ETH': 'ethereum',
   'SOL': 'solana',
   'TON': 'toncoin',
 };
 
-/// Symbols supported by the primary CryptoCompare endpoint.
-const _cryptoCompareSymbols = ['BTC', 'ETH', 'SOL', 'TON'];
+const _cryptoCompareSymbols = ['ETH', 'SOL', 'TON'];
 
 class PriceProvider {
   final Dio _dio;
 
   PriceProvider(this._dio);
 
-  /// Returns the current USD price for a single [symbol] (e.g. "BTC", "ETH").
+  /// Returns the current USD price for a single [symbol] (e.g. "SOL", "TON").
   ///
   /// Throws an [Exception] when [symbol] is not in the supported set.
   Future<double> getUsdPrice(String symbol) async {
@@ -33,7 +30,6 @@ class PriceProvider {
   /// Tries CryptoCompare first (CORS-friendly for web); falls back to
   /// CoinGecko if the primary request fails.
   ///
-  /// VAVEL is not listed on either exchange — its key is absent from the map.
   Future<Map<String, double>> fetchPrices() async {
     try {
       return await _fetchFromCryptoCompare();

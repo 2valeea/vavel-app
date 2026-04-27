@@ -6,8 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/address_book_entry.dart';
 import '../models/asset_id.dart';
 import '../utils/address_recipient_normalizer.dart';
-import '../utils/ens_utils.dart';
-import 'wallet_provider.dart';
 
 class AddressBookNotifier extends AsyncNotifier<List<AddressBookEntry>> {
   static const _prefsKey = 'address_book_v1';
@@ -48,12 +46,7 @@ class AddressBookNotifier extends AsyncNotifier<List<AddressBookEntry>> {
   }) async {
     final trimmed = address.trim();
     if (trimmed.isEmpty) return;
-    final normalized =
-        normalizeRecipientAddress(assetId, trimmed);
-    if ((assetId == AssetId.eth || assetId == AssetId.vavel) &&
-        looksLikeEnsName(normalized)) {
-      await ref.read(walletServiceProvider).resolveEthereumRecipient(normalized);
-    }
+    final normalized = normalizeRecipientAddress(assetId, trimmed);
     final id = DateTime.now().microsecondsSinceEpoch.toString();
     final entry = AddressBookEntry(
       id: id,
@@ -79,10 +72,6 @@ class AddressBookNotifier extends AsyncNotifier<List<AddressBookEntry>> {
     final trimmed = address.trim();
     if (trimmed.isEmpty) return;
     final normalized = normalizeRecipientAddress(assetId, trimmed);
-    if ((assetId == AssetId.eth || assetId == AssetId.vavel) &&
-        looksLikeEnsName(normalized)) {
-      await ref.read(walletServiceProvider).resolveEthereumRecipient(normalized);
-    }
     final list = await future;
     final idx = list.indexWhere((e) => e.id == id);
     if (idx < 0) return;

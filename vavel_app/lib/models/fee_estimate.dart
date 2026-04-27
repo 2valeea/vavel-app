@@ -1,41 +1,15 @@
-/// Thrown by [FeeService] when fee estimation fails for any reason.
-///
-/// Always carries a [userMessage] suitable for display in the UI.
-/// The original error is preserved in [cause] for logging.
+/// Thrown when USD fee estimation fails for Ethereum gas preview.
 class FeeEstimationException implements Exception {
-  /// Chain that failed, e.g. `'ethereum'` or `'bitcoin'`.
-  final String network;
-
-  /// Human-readable message safe to show directly in the UI.
+  FeeEstimationException(this.userMessage);
   final String userMessage;
-
-  /// Original exception, preserved for logging/crash reporting.
-  final Object? cause;
-
-  const FeeEstimationException({
-    required this.network,
-    required this.userMessage,
-    this.cause,
-  });
-
-  @override
-  String toString() => 'FeeEstimationException($network): $userMessage';
 }
 
-/// Estimated network fee for a pending transaction.
-///
-/// [nativeAmount] is expressed in the chain's smallest unit:
-///   • Bitcoin  → satoshis
-///   • Ethereum → wei
-///
-/// [usd] is the pre-converted USD value of [nativeAmount].
+/// Estimated network fee for a pending transaction (EVM).
 class FeeEstimate {
-  final String network; // "bitcoin" | "ethereum"
-  final BigInt nativeAmount; // sats or wei
-  final double usd; // already converted
+  final BigInt nativeAmount;
+  final double usd;
 
   const FeeEstimate({
-    required this.network,
     required this.nativeAmount,
     required this.usd,
   });

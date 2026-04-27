@@ -13,8 +13,6 @@ import 'history_screen.dart';
 import 'legal_screens.dart';
 import 'pin_setup_screen.dart';
 import 'support_screen.dart';
-import '../utils/service_fee_consent.dart';
-
 // ── Notifications preferences provider ───────────────────────────────────
 
 const _kNotifyTx = 'notify_tx';
@@ -122,50 +120,6 @@ Future<void> _openLegalFeesHub(BuildContext context, WidgetRef ref) async {
             onTap: () {
               Navigator.pop(ctx);
               pushPremium(context, const PrivacyPolicyScreen());
-            },
-          ),
-          const Divider(height: 1, color: Colors.white12),
-          ListTile(
-            leading: const Icon(Icons.refresh, color: Colors.orangeAccent),
-            title: Text(
-              s.legalFeesMenuReset,
-              style: const TextStyle(color: Colors.white),
-            ),
-            onTap: () async {
-              Navigator.pop(ctx);
-              if (!context.mounted) return;
-              final go = await showDialog<bool>(
-                context: context,
-                builder: (dctx) => AlertDialog(
-                  backgroundColor: const Color(0xFF1A2A3E),
-                  title: Text(
-                    s.legalFeesResetNoticeTitle,
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                  content: Text(
-                    s.legalFeesResetNoticeBody,
-                    style: const TextStyle(color: Colors.white70, height: 1.35),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(dctx, false),
-                      child: Text(s.legalFeesResetCancel),
-                    ),
-                    FilledButton(
-                      onPressed: () => Navigator.pop(dctx, true),
-                      child: Text(s.legalFeesResetConfirm),
-                    ),
-                  ],
-                ),
-              );
-              if (!context.mounted) return;
-              if (go == true) {
-                await clearServiceFeeConsent();
-                if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(s.legalFeesResetDone)),
-                );
-              }
             },
           ),
           const SizedBox(height: 8),

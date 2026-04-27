@@ -42,13 +42,13 @@ class S {
   }
 
   // ── App bar / navigation ────────────────────────────────────────────────
-  String get appTitle => _t('VAVEL WALLET',
-      ru: 'VAVEL КОШЕЛЁК',
-      de: 'VAVEL WALLET',
-      da: 'VAVEL PUNG',
-      et: 'VAVEL RAHAKOTT',
-      pt: 'VAVEL CARTEIRA',
-      uk: 'VAVEL ГАМАНЕЦЬ');
+  String get appTitle => _t('Wallet Vaval',
+      ru: 'Валет Vaval',
+      de: 'Wallet Vaval',
+      da: 'Wallet Vaval',
+      et: 'Wallet Vaval',
+      pt: 'Wallet Vaval',
+      uk: 'Wallet Vaval');
   String get settings => _t('Settings',
       ru: 'Настройки',
       de: 'Einstellungen',
@@ -196,13 +196,13 @@ class S {
       pt: 'Remover o PIN de pânico? Pode configurá-lo de novo em Segurança.',
       uk: 'Видалити панічний PIN? Пізніше можна знову налаштувати в «Безпека».');
   String get duressModeBanner => _t(
-      'Panic mode — portfolio hidden; send, receive, swap & dApps are disabled.',
-      ru: 'Режим паники — портфель скрыт; отправка, приём, обмен и dApp отключены.',
-      de: 'Panikmodus — Portfolio verborgen; Senden, Empfangen, Swap & dApps aus.',
-      da: 'Paniktilstand — portefølje skjult; send, modtag, swap og dApps er slået fra.',
-      et: 'Paanikarežiim — portfell peidetud; saatmine, vastuvõtt, vahetus ja dAppid keelatud.',
-      pt: 'Modo pânico — carteira oculta; enviar, receber, swap e dApps desativados.',
-      uk: 'Панічний режим — портфель приховано; надсилання, прийом, обмін і dApp вимкнено.');
+      'Panic mode — portfolio hidden; send, receive, and swap are disabled.',
+      ru: 'Режим паники — портфель скрыт; отправка, приём и обмен отключены.',
+      de: 'Panikmodus — Portfolio verborgen; Senden, Empfangen und Swap aus.',
+      da: 'Paniktilstand — portefølje skjult; send, modtag og swap er slået fra.',
+      et: 'Paanikarežiim — portfell peidetud; saatmine, vastuvõtt ja vahetus keelatud.',
+      pt: 'Modo pânico — carteira oculta; enviar, receber e swap desativados.',
+      uk: 'Панічний режим — портфель приховано; надсилання, прийом і обмін вимкнено.');
   String get duressActionBlocked => _t(
       'Unavailable in panic mode. Lock the wallet and sign in with your main PIN.',
       ru: 'Недоступно в режиме паники. Заблокируйте кошелёк и войдите основным PIN.',
@@ -302,44 +302,6 @@ class S {
       et: 'Ahelas',
       pt: 'On-chain',
       uk: 'Ончейн');
-  String get historyTabWalletConnect => _t('WalletConnect',
-      ru: 'WalletConnect',
-      de: 'WalletConnect',
-      da: 'WalletConnect',
-      et: 'WalletConnect',
-      pt: 'WalletConnect',
-      uk: 'WalletConnect');
-  String get historyWcEmpty => _t(
-      'No WalletConnect activity yet. Approvals, signatures, and transactions from dApp Connect will appear here.',
-      ru: 'Пока нет активности WalletConnect. Подключения, подписи и транзакции из раздела dApp Connect появятся здесь.',
-      de: 'Noch keine WalletConnect-Aktivität. Genehmigungen, Signaturen und Transaktionen aus dApp Connect erscheinen hier.',
-      da: 'Ingen WalletConnect-aktivitet endnu. Godkendelser, signaturer og transaktioner fra dApp Connect vises her.',
-      et: 'WalletConnecti tegevust pole veel. dApp Connect heakskiidud, allkirjad ja tehingud kuvatakse siin.',
-      pt: 'Ainda sem atividade WalletConnect. Aprovações, assinaturas e transações do dApp Connect aparecem aqui.',
-      uk: 'Поки немає активності WalletConnect. Підтвердження, підписи та транзакції з dApp Connect з’являться тут.');
-  String get historyClearWcTitle => _t('Clear WalletConnect log?',
-      ru: 'Очистить журнал WalletConnect?',
-      de: 'WalletConnect-Protokoll löschen?',
-      da: 'Ryd WalletConnect-log?',
-      et: 'Kustutada WalletConnecti logi?',
-      pt: 'Limpar registo WalletConnect?',
-      uk: 'Очистити журнал WalletConnect?');
-  String get historyClearWcBody => _t(
-      'This removes locally stored WalletConnect session and signing history from this device.',
-      ru: 'Это удалит локально сохранённую историю сессий и подписей WalletConnect на этом устройстве.',
-      de: 'Dadurch wird die lokal gespeicherte WalletConnect-Sitzungs- und Signaturhistorie auf diesem Gerät entfernt.',
-      da: 'Dette fjerner lokalt gemt WalletConnect-session og signeringshistorik på denne enhed.',
-      et: 'See eemaldab selles seadmes kohapeal salvestatud WalletConnecti seansi- ja allkirjade ajaloo.',
-      pt: 'Isto remove o histórico local de sessões e assinaturas WalletConnect neste dispositivo.',
-      uk: 'Це видалить локально збережену історію сесій і підписів WalletConnect на цьому пристрої.');
-  String get historyClearWcAction => _t('Clear log',
-      ru: 'Очистить',
-      de: 'Protokoll löschen',
-      da: 'Ryd log',
-      et: 'Tühjenda logi',
-      pt: 'Limpar registo',
-      uk: 'Очистити');
-
   String get historyChipAll => _t('All',
       ru: 'Все',
       de: 'Alle',
@@ -354,27 +316,14 @@ class S {
       et: 'Ahelas',
       pt: 'On-chain',
       uk: 'Ончейн');
-  String get historyBadgeDapp => _t('dApp',
-      ru: 'dApp',
-      de: 'dApp',
-      da: 'dApp',
-      et: 'dApp',
-      pt: 'dApp',
-      uk: 'dApp');
   String get historyEmptyUnified => _t(
-      'No activity yet. Outgoing transfers and WalletConnect events will appear here in one timeline.',
-      ru:
-          'Пока нет активности. Исходящие переводы и события WalletConnect появятся здесь в одной ленте.',
-      de:
-          'Noch keine Aktivität. Ausgehende Überweisungen und WalletConnect-Ereignisse erscheinen hier in einer Zeitleiste.',
-      da:
-          'Ingen aktivitet endnu. Udgående overførsler og WalletConnect-begivenheder vises her i én tidslinje.',
-      et:
-          'Tegevust pole veel. Väljuvad ülekanded ja WalletConnecti sündmused kuvatakse siin ühel ajajoonel.',
-      pt:
-          'Ainda sem atividade. Transferências enviadas e eventos WalletConnect aparecem aqui numa única linha do tempo.',
-      uk:
-          'Поки немає активності. Вихідні перекази та події WalletConnect з’являться тут в одній стрічці.');
+      'No outgoing transfers yet. When you send assets, they will appear here.',
+      ru: 'Исходящих переводов пока нет. После отправки они появятся здесь.',
+      de: 'Noch keine ausgehenden Überweisungen. Nach dem Senden erscheinen sie hier.',
+      da: 'Ingen udgående overførsler endnu. Når du sender, vises de her.',
+      et: 'Väljuvaid ülekandeid pole veel. Pärast saatmist kuvatakse need siin.',
+      pt: 'Ainda sem transferências enviadas. Após enviar, aparecem aqui.',
+      uk: 'Вихідних переказів поки немає. Після відправлення вони з’являться тут.');
   String get historyEmptyFilter => _t('Nothing in this category yet.',
       ru: 'В этой категории пока ничего нет.',
       de: 'In dieser Kategorie ist noch nichts vorhanden.',
@@ -390,19 +339,13 @@ class S {
       pt: 'Limpar toda a atividade?',
       uk: 'Очистити всю активність?');
   String get historyClearAllBody => _t(
-      'This removes on-chain send history and the WalletConnect activity log stored on this device.',
-      ru:
-          'Это удалит историю исходящих переводов и журнал WalletConnect, сохранённые на этом устройстве.',
-      de:
-          'Dadurch werden der On-Chain-Sendeverlauf und das WalletConnect-Aktivitätsprotokoll auf diesem Gerät entfernt.',
-      da:
-          'Dette fjerner on-chain sendehistorik og WalletConnect-aktivitetslog på denne enhed.',
-      et:
-          'See eemaldab ahelas väljasaatmiste ajaloo ja WalletConnecti tegevuse logi sellest seadmest.',
-      pt:
-          'Isto remove o histórico de envios on-chain e o registo de atividade WalletConnect neste dispositivo.',
-      uk:
-          'Це видалить історію відправлень ончейн і журнал активності WalletConnect на цьому пристрої.');
+      'This removes locally stored outgoing transfer history on this device.',
+      ru: 'Это удалит локально сохранённую историю исходящих переводов на этом устройстве.',
+      de: 'Dadurch wird der lokal gespeicherte Sendeverlauf auf diesem Gerät entfernt.',
+      da: 'Dette fjerner lokalt gemt udgående overførselshistorik på denne enhed.',
+      et: 'See eemaldab kohapeal salvestatud väljuva ülekannete ajaloo sellest seadmest.',
+      pt: 'Isto remove o histórico local de transferências enviadas neste dispositivo.',
+      uk: 'Це видалить локально збережену історію вихідних переказів на цьому пристрої.');
   String get historyMenuClearOnChain => _t('Clear on-chain history',
       ru: 'Очистить ончейн-историю',
       de: 'On-Chain-Verlauf löschen',
@@ -410,13 +353,6 @@ class S {
       et: 'Tühjenda ahela ajalugu',
       pt: 'Limpar histórico on-chain',
       uk: 'Очистити ончейн-історію');
-  String get historyMenuClearWc => _t('Clear dApp activity log',
-      ru: 'Очистить журнал dApp',
-      de: 'dApp-Aktivitätsprotokoll löschen',
-      da: 'Ryd dApp-aktivitetslog',
-      et: 'Tühjenda dAppi tegevuse logi',
-      pt: 'Limpar registo de atividade dApp',
-      uk: 'Очистити журнал активності dApp');
   String get historyMenuClearAll => _t('Clear everything',
       ru: 'Очистить всё',
       de: 'Alles löschen',
@@ -424,28 +360,6 @@ class S {
       et: 'Tühjenda kõik',
       pt: 'Limpar tudo',
       uk: 'Очистити все');
-  String get historyLoadingWcLine => _t('Loading dApp activity…',
-      ru: 'Загрузка активности dApp…',
-      de: 'dApp-Aktivität wird geladen…',
-      da: 'Indlæser dApp-aktivitet…',
-      et: 'Laadin dAppi tegevust…',
-      pt: 'A carregar atividade dApp…',
-      uk: 'Завантаження активності dApp…');
-  String get historyWcLoadErrorLead => _t(
-      'Could not refresh dApp activity. On-chain items are still shown.',
-      ru:
-          'Не удалось обновить активность dApp. Ончейн-записи по-прежнему отображаются.',
-      de:
-          'dApp-Aktivität konnte nicht aktualisiert werden. On-Chain-Einträge werden weiterhin angezeigt.',
-      da:
-          'Kunne ikke opdatere dApp-aktivitet. On-chain-poster vises stadig.',
-      et:
-          'dAppi tegevust ei saanud värskendada. Ahela kanded on endiselt näha.',
-      pt:
-          'Não foi possível atualizar a atividade dApp. Itens on-chain continuam visíveis.',
-      uk:
-          'Не вдалося оновити активність dApp. Ончейн-записи все ще відображаються.');
-
   // ── Legal (store placeholders) ───────────────────────────────────────────
   String get legalSection => _t('Legal',
       ru: 'Право',
@@ -461,13 +375,13 @@ class S {
       et: 'Kasutustingimused',
       pt: 'Termos de serviço',
       uk: 'Умови використання');
-  String get legalTermsDesc => _t('Rules for using Vavel Wallet',
-      ru: 'Правила использования Vavel Wallet',
-      de: 'Regeln für die Nutzung von Vavel Wallet',
-      da: 'Regler for brug af Vavel Wallet',
-      et: 'Vavel Walleti kasutamise reeglid',
-      pt: 'Regras de utilização da Vavel Wallet',
-      uk: 'Правила використання Vavel Wallet');
+  String get legalTermsDesc => _t('Rules for using Wallet Vaval',
+      ru: 'Правила использования Валет Vaval',
+      de: 'Regeln für die Nutzung von Wallet Vaval',
+      da: 'Regler for brug af Wallet Vaval',
+      et: 'Wallet Vaval kasutamise reeglid',
+      pt: 'Regras de utilização do Wallet Vaval',
+      uk: 'Правила використання Wallet Vaval');
   String get legalPrivacyTitle => _t('Privacy Policy',
       ru: 'Политика конфиденциальности',
       de: 'Datenschutzerklärung',
@@ -483,73 +397,116 @@ class S {
       pt: 'Como tratamos os seus dados',
       uk: 'Як ми обробляємо ваші дані');
 
-  /// In-app disclosure on Send: 1 VAVEL service fee vs network fees (English default for stores).
+  /// Send screen: standard network fees only.
   String get sendFeeDisclosure => _t(
-      'Before your main transfer, the App submits a separate EVM transaction that transfers exactly 1 VAVEL to the '
-      'operator wallet 0xebeaba868348cec64a2712c7d23936af919b09e2. This is a fixed in-app service fee for using the send '
-      'feature. It is separate from blockchain network fees (for example gas) paid to validators or miners.',
-      ru: 'Перед основной отправкой приложение инициирует отдельную EVM-транзакцию: перевод 1 VAVEL на адрес оператора '
-          '0xebeaba868348cec64a2712c7d23936af919b09e2. Это фиксированный сервисный сбор приложения за использование '
-          'отправки. Он отделён от сетевой комиссии блокчейна (например газа), выплачиваемой валидаторам или майнерам.');
+      'Ethereum (ETH and VAVAL), Solana, and TON charge standard network fees to miners or validators when you send. '
+      'Those fees are not paid to the app publisher. Review the estimate for your chain before you confirm.',
+      ru: 'Сети Ethereum (ETH и VAVAL), Solana и TON взимают обычные сетевые комиссии при отправке (операторам сети / валидаторам). '
+          'Эти средства не идут издателю приложения. Проверьте оценку перед подтверждением.');
 
-  /// Two-line fee summary on Send (clarity for users and store reviewers).
-  String get sendFeeLineService => _t(
-      'Service fee (app): 1 VAVEL — fixed; paid to the operator in a separate EVM transaction before your transfer.',
-      ru: 'Сервисный сбор (приложение): 1 VAVEL — фиксировано; отдельная EVM-транзакция оператору перед вашей отправкой.');
   String get sendFeeLineNetwork => _t(
-      'Network fee: set by the destination blockchain and paid to validators or miners — not to the app operator.',
-      ru: 'Сетевая комиссия: определяется сетью назначения и идёт валидаторам/майнерам — не оператору приложения.');
+      'Network fee: set by the destination blockchain and paid to validators or miners.',
+      ru: 'Сетевая комиссия: определяется сетью назначения и выплачивается валидаторам/операторам сети.');
   String get sendFeeSmallTransferNote => _t(
-      'The 1 VAVEL service fee is fixed no matter how much you send. On small transfers it can be a large fraction of the '
-      'amount — please review before you confirm.',
-      ru: 'Сервисный сбор 1 VAVEL фиксирован независимо от суммы перевода. При мелких суммах он может составлять большую '
-          'долю отправляемого объёма — проверьте перед подтверждением.');
+      'Network fees can be high when chains are busy or when you send very small amounts. Please review before you confirm.',
+      ru: 'Сетевые комиссии могут быть высокими при загруженности сети или при очень малых суммах. Проверьте перед подтверждением.');
 
-  String get sendFeeConsentTitle => _t(
-      'Service fee acknowledgment',
-      ru: 'Подтверждение сервисного сбора');
-  /// Text before the underlined [legalTermsTitle] link in the consent dialog.
-  String get sendFeeConsentRichPart1 => _t(
-      'Vavel Wallet charges a fixed in-app service fee of 1 VAVEL (EVM) before your main transfer, sent to the operator '
-      'address shown in the App. Blockchain network fees are separate and paid to validators or miners. By clicking '
-      'Accept, you agree to the fixed Service Fee as described in our ',
-      ru: 'Vavel Wallet взимает фиксированный сервисный сбор 1 VAVEL (EVM) перед основной отправкой на адрес оператора, '
-          'указанный в приложении. Сетевая комиссия блокчейна оплачивается отдельно. Нажимая «Принимаю», вы подтверждаете '
-          'согласие с фиксированным сервисным сбором в объёме, изложенном в нашем документе ');
-  /// Text after the Terms link. Binds Accept to the Terms of Service.
-  String get sendFeeConsentRichPart2 => _t(
-      '.',
-      ru: '.');
-  String get sendFeeConsentCheckbox => _t(
-      'I confirm I have read the Terms of Service and, with the box checked, I accept the fixed 1 VAVEL service fee plus '
-      'network fees as described there before any transfer is started.',
-      ru: 'Подтверждаю, что ознакомился(ась) с Условиями использования и, с отмеченным флажком, принимаю фиксированный '
-          'сервисный сбор 1 VAVEL плюс сетевые комиссии, как там указано, до начала любой отправки.');
-  String get sendFeeConsentAccept => _t('Accept',
-      ru: 'Принимаю');
-  /// Declining closes the dialog and aborts the send flow (no transaction).
-  String get sendFeeConsentDecline => _t('Not now', ru: 'Не сейчас');
-
-  String get legalFeesHubTitle => _t('Legal & fees',
-      ru: 'Право и комиссии');
+  String get legalFeesHubTitle => _t('Legal',
+      ru: 'Право',
+      de: 'Rechtliches',
+      da: 'Juridisk',
+      et: 'Juriidiline',
+      pt: 'Legal',
+      uk: 'Юридичне');
   String get legalFeesHubDesc => _t(
-      'Terms, Privacy, and show the service fee notice again',
-      ru: 'Условия, конфиденциальность и снова показать уведомление о сборе');
-  String get legalFeesResetNoticeTitle => _t('Show fee notice again?',
-      ru: 'Показать уведомление о сборе снова?');
-  String get legalFeesResetNoticeBody => _t(
-      'The next time you tap Send, the service fee notice will appear again before any transfer can start. This setting '
-      'does not send a transaction by itself.',
-      ru: 'При следующем нажатии «Отправить» снова появится уведомление о сборе до начала любой отправки. Это действие само '
-          'по себе не инициирует транзакцию.');
-  String get legalFeesResetConfirm => _t('Reset notice', ru: 'Сбросить');
-  String get legalFeesResetCancel => _t('Cancel', ru: 'Отмена');
+      'Terms and Privacy Policy',
+      ru: 'Условия и политика конфиденциальности',
+      de: 'AGB und Datenschutz',
+      da: 'Vilkår og privatlivspolitik',
+      et: 'Tingimused ja privaatsuspoliitika',
+      pt: 'Termos e política de privacidade',
+      uk: 'Умови та політика конфіденційності');
   String get legalFeesMenuOpenTerms => _t('Open Terms of Service', ru: 'Открыть Условия использования');
   String get legalFeesMenuOpenPrivacy => _t('Open Privacy Policy', ru: 'Открыть Политику конфиденциальности');
-  String get legalFeesMenuReset => _t('Show service fee notice on next send',
-      ru: 'Показать уведомление о сборе при следующей отправке');
-  String get legalFeesResetDone => _t('Fee notice will show again on next send.',
-      ru: 'Уведомление о сборе снова появится при следующей отправке.');
+
+  String get stripePaywallTitle => _t('Unlock Wallet Vaval',
+      ru: 'Разблокировка Валет Vaval');
+  String get stripePaywallBody => _t(
+      'Use the button below to open Stripe’s secure Checkout page. After payment your browser opens our /success page, then you can return to Wallet Vaval; '
+      'on-chain sends only incur normal network fees (e.g. Ethereum gas, Solana, TON).',
+      ru: 'Нажмите кнопку ниже — откроется защищённая страница оплаты Stripe. После оплаты браузер откроет страницу /success, затем вы сможете вернуться в «Валет Vaval»; '
+          'за переводы в блокчейне платите только обычные сетевые комиссии.',
+      de: 'Öffnen Sie die sichere Stripe-Checkout-Seite. Danach nutzen Sie Wallet Vaval; On-Chain nur normale Netzwerkgebühren.',
+      da: 'Åbn Stripes sikre betalingsside. Derefter Wallet Vaval; on-chain kun normale gebyrer.',
+      et: 'Avage Stripe turvaline makseleht. Seejärel Wallet Vaval; plokiahelas tavatasud.',
+      pt: 'Abra o Checkout seguro da Stripe. Depois use o Wallet Vaval; on-chain apenas taxas normais.',
+      uk: 'Відкрийте безпечну сторінку Stripe Checkout. Потім користуйтесь Wallet Vaval; у мережі лише стандартні збори.');
+  String get stripePriceLineTemplate => _t(
+      'Access total (charged at Checkout): {amount}',
+      ru: 'Сумма доступа (в Checkout): {amount}',
+      de: 'Zugang gesamt (Checkout): {amount}',
+      da: 'Adgang i alt (Checkout): {amount}',
+      et: 'Juurdepääs kokku (Checkout): {amount}',
+      pt: 'Total de acesso (Checkout): {amount}',
+      uk: 'Сума доступу (Checkout): {amount}');
+  String get stripePayButton => _t('Pay on Stripe’s website', ru: 'Оплатить на сайте Stripe');
+  String get stripeBackendLabel => _t('Payment backend base URL (configure for your build):',
+      ru: 'Базовый URL сервера оплаты (настройте для вашей сборки):');
+  String get stripeMissingBackendUrl => _t(
+      'Set --dart-define=STRIPE_BACKEND_URL=https://your-server.example (no trailing slash)',
+      ru: 'Укажите --dart-define=STRIPE_BACKEND_URL=https://ваш-сервер.example (без слэша в конце)');
+  String get stripeOpeningBrowser => _t('Opening Stripe…', ru: 'Открываем Stripe…');
+  String get stripeThankYouTitle => _t('Thank you!', ru: 'Спасибо!');
+  String get stripeThankYouBody => _t(
+      'Your payment was successful. Wallet Vaval is unlocked — you can continue to the wallet.',
+      ru: 'Оплата прошла успешно. «Валет Vaval» разблокирован — можно переходить к кошельку.',
+      de: 'Zahlung erfolgreich. Wallet Vaval ist freigeschaltet.',
+      da: 'Betaling gennemført. Wallet Vaval er låst op.',
+      et: 'Makse õnnestus. Wallet Vaval on avatud.',
+      pt: 'Pagamento concluído. Wallet Vaval desbloqueado.',
+      uk: 'Оплата успішна. Wallet Vaval розблоковано.');
+  String get stripeThankYouContinue => _t('Continue to wallet', ru: 'Перейти к кошельку');
+  String get stripeCheckoutCanceled => _t(
+      'Checkout was canceled. You can try again whenever you’re ready.',
+      ru: 'Оплата отменена. Вы можете попробовать снова, когда будете готовы.',
+      de: 'Checkout wurde abgebrochen. Sie können es später erneut versuchen.',
+      da: 'Betalingen blev annulleret. Prøv igen, når du er klar.',
+      et: 'Makse katkestati. Proovige uuesti, kui soovite.',
+      pt: 'O checkout foi cancelado. Pode tentar novamente quando quiser.',
+      uk: 'Оплату скасовано. Можна спробувати знову, коли будете готові.');
+  String get stripePaymentNotCompleted => _t(
+      'Payment was not completed. If your card was declined, try another card or contact your bank.',
+      ru: 'Оплата не завершена. Если карта отклонена, попробуйте другую карту или обратитесь в банк.',
+      de: 'Zahlung nicht abgeschlossen. Bei Kartenproblemen andere Karte nutzen oder Bank kontaktieren.',
+      da: 'Betalingen blev ikke gennemført. Prøv et andet kort eller kontakt banken.',
+      et: 'Makse ei lõppenud. Proovige teist kaarti või võtke ühendust pangaga.',
+      pt: 'Pagamento não concluído. Experimente outro cartão ou contacte o banco.',
+      uk: 'Оплату не завершено. Спробуйте іншу картку або зверніться до банку.');
+  String get stripeNetworkError => _t(
+      'Could not reach the payment server. Check your connection and backend URL.',
+      ru: 'Не удалось связаться с сервером оплаты. Проверьте интернет и URL сервера.',
+      de: 'Zahlungsserver nicht erreichbar. Verbindung und URL prüfen.',
+      da: 'Kunne ikke nå betalingsserveren. Tjek forbindelse og URL.',
+      et: 'Makseserveriga ei saanud ühendust. Kontrollige võrku ja URL-i.',
+      pt: 'Não foi possível contactar o servidor de pagamentos. Verifique a ligação e o URL.',
+      uk: 'Не вдалося зв’язатися з сервером оплати. Перевірте мережу та URL.');
+  String get stripeBrowserOpenFailed => _t(
+      'Could not open the browser for Stripe Checkout.',
+      ru: 'Не удалось открыть браузер для оплаты Stripe.',
+      de: 'Browser für Stripe Checkout konnte nicht geöffnet werden.',
+      da: 'Kunne ikke åbne browseren til Stripe Checkout.',
+      et: 'Stripe Checkouti brauserit ei saanud avada.',
+      pt: 'Não foi possível abrir o browser para o Stripe Checkout.',
+      uk: 'Не вдалося відкрити браузер для Stripe Checkout.');
+  String get stripePublishableKeyMissingHint => _t(
+      'Tip: set STRIPE_PUBLISHABLE_KEY via --dart-define (pk_… only; never sk_…).',
+      ru: 'Подсказка: укажите STRIPE_PUBLISHABLE_KEY через --dart-define (только pk_…, не sk_…).',
+      de: 'Tipp: STRIPE_PUBLISHABLE_KEY per --dart-define setzen (nur pk_…).',
+      da: 'Tip: angiv STRIPE_PUBLISHABLE_KEY med --dart-define (kun pk_…).',
+      et: 'Vihje: määrake STRIPE_PUBLISHABLE_KEY --dart-define abil (ainult pk_…).',
+      pt: 'Dica: defina STRIPE_PUBLISHABLE_KEY com --dart-define (apenas pk_…).',
+      uk: 'Підказка: задайте STRIPE_PUBLISHABLE_KEY через --dart-define (лише pk_…).');
+  String get paywallLock => _t('Lock wallet', ru: 'Заблокировать кошелёк');
 
   // ── Support ──────────────────────────────────────────────────────────────
   String get support => _t('Support',
@@ -633,7 +590,7 @@ class S {
       pt: 'Rede',
       uk: 'Мережа');
   String get networkMainnet => _t('Mainnet (Live)',
-      ru: 'Mainnet (боевая сеть)',
+      ru: 'Mainnet (основная сеть)',
       de: 'Mainnet (Live)',
       da: 'Mainnet (Live)',
       et: 'Mainnet (Live)',
@@ -654,13 +611,13 @@ class S {
       pt: 'Transações e saldos reais',
       uk: 'Реальні транзакції та баланси');
   String get networkTestnetDesc =>
-      _t('Devnet / Sepolia / Testnet3 — no real funds',
-          ru: 'Devnet/Sepolia/Testnet3 — без реальных средств',
-          de: 'Devnet/Sepolia/Testnet3 — keine echten Mittel',
-          da: 'Devnet/Sepolia/Testnet3 — ingen rigtige midler',
-          et: 'Devnet/Sepolia/Testnet3 — pole päris vahendeid',
-          pt: 'Devnet/Sepolia/Testnet3 — sem fundos reais',
-          uk: 'Devnet/Sepolia/Testnet3 — без реальних коштів');
+      _t('Solana Devnet, Ethereum Sepolia, and TON testnet — no real funds',
+          ru: 'Solana Devnet, Sepolia (Ethereum) и тестовая сеть TON — без реальных средств',
+          de: 'Solana Devnet, Ethereum Sepolia und TON-Testnet — keine echten Mittel',
+          da: 'Solana Devnet, Ethereum Sepolia og TON-testnet — ingen rigtige midler',
+          et: 'Solana Devnet, Ethereum Sepolia ja TON testnet — pole päris vahendeid',
+          pt: 'Solana Devnet, Ethereum Sepolia e testnet TON — sem fundos reais',
+          uk: 'Solana Devnet, Ethereum Sepolia і тестова мережа TON — без реальних коштів');
   String get networkTestnetWarning =>
       _t('⚠ Testnet active — real funds are not accessible',
           ru: '⚠ Тестовая сеть активна — реальные средства недоступны',

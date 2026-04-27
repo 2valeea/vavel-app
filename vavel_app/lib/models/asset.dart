@@ -1,17 +1,13 @@
-export 'fee_estimate.dart';
-
-enum AssetType { btc, eth, erc20, sol, token2022, ton }
+enum AssetType { eth, erc20, sol, token2022, ton }
 
 class Asset {
-  final String id; // e.g. "btc", "eth", "vavel"
-  final String name; // "Bitcoin"
-  final String symbol; // "BTC"
+  final String id;
+  final String name;
+  final String symbol;
   final AssetType type;
-  final int decimals; // BTC=8, ETH=18, ERC20 varies, SOL=9, TON=9
-  final String? contract; // ERC20 contract address only
-  /// Solana mint (Token-2022 or classic SPL) for [AssetType.token2022].
+  final int decimals;
   final String? solanaMint;
-  final String? geckoId; // CoinGecko price ID
+  final String? geckoId;
 
   const Asset({
     required this.id,
@@ -19,30 +15,18 @@ class Asset {
     required this.symbol,
     required this.type,
     required this.decimals,
-    this.contract,
     this.solanaMint,
     this.geckoId,
   });
 }
 
-/// Named asset constants — use these for identity comparisons.
-const kAssetVavel = Asset(
-  id: 'vavel',
-  name: 'VAVEL',
-  symbol: 'VAVEL',
+const kAssetVaval = Asset(
+  id: 'vaval',
+  name: 'Vaval',
+  symbol: 'VAVAL',
   type: AssetType.erc20,
   decimals: 18,
-  contract: '0x12345...', // replace with real contract address before release
-  geckoId: null, // not on CoinGecko yet
-);
-
-const kAssetBtc = Asset(
-  id: 'btc',
-  name: 'Bitcoin',
-  symbol: 'BTC',
-  type: AssetType.btc,
-  decimals: 8,
-  geckoId: 'bitcoin',
+  geckoId: null,
 );
 
 const kAssetEth = Asset(
@@ -63,7 +47,6 @@ const kAssetSol = Asset(
   geckoId: 'solana',
 );
 
-/// Pump.fun launch (Token-2022) — [solanaMint] is the on-chain metadata key.
 const kAssetTiktok = Asset(
   id: 'tiktok',
   name: 'tik-tok',
@@ -83,21 +66,14 @@ const kAssetTon = Asset(
   geckoId: 'toncoin',
 );
 
-/// Canonical ordered list of supported assets. VAVEL is first as the primary token.
 const List<Asset> kAssets = [
-  kAssetVavel,
-  kAssetBtc,
+  kAssetVaval,
   kAssetEth,
   kAssetSol,
   kAssetTiktok,
-  kAssetTon
+  kAssetTon,
 ];
 
-/// Unified balance type for any asset.
-///
-/// [raw] holds the integer amount in the asset's smallest unit
-/// (satoshis, wei, lamports, nanotons, or ERC-20 token units).
-/// Call [toDecimal] to convert to a human-readable [double].
 class AssetBalance {
   final String assetId;
   final String symbol;
@@ -111,9 +87,6 @@ class AssetBalance {
     required this.decimals,
   });
 
-  /// Converts [raw] to a decimal value using [decimals].
-  ///
-  /// Example: raw=1500000000, decimals=9 → 1.5
   double toDecimal() {
     if (raw == BigInt.zero) return 0.0;
     final factor = BigInt.from(10).pow(decimals);

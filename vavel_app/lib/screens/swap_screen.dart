@@ -20,7 +20,7 @@ class SwapScreen extends ConsumerStatefulWidget {
 
 class _SwapScreenState extends ConsumerState<SwapScreen> {
   AssetId _from = AssetId.eth;
-  AssetId _to = AssetId.btc;
+  AssetId _to = AssetId.vaval;
   final _amtController = TextEditingController(text: '1');
   final _usdFmt = NumberFormat.currency(symbol: r'$', decimalDigits: 2);
   final _cryptoFmt = NumberFormat('#,##0.########');
@@ -247,7 +247,7 @@ class _SwapScreenState extends ConsumerState<SwapScreen> {
     double? tiktokUsd,
   }) {
     if (id == AssetId.tiktok) return tiktokUsd;
-    return prices[id.ticker];
+    return prices[id.ticker] ?? 0.0;
   }
 }
 

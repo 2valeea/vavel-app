@@ -6,6 +6,8 @@ allprojects {
         mavenCentral()
         // walletconnect_pay → com.github.reown-com.yttrium:yttrium-wcpay (Reown / WalletConnect Pay)
         maven { url = uri("https://jitpack.io") }
+        // Huawei Mobile Services (Push Kit, hms-availability, etc.)
+        maven { url = uri("https://developer.huawei.com/repo/") }
     }
 }
 

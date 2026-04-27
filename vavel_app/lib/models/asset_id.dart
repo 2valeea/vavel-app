@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
 import 'asset.dart';
 
-/// UI-side asset identifiers used across Home, Swap and other screens.
-///
-/// Kept separate from [Asset] (which is a pure data model with no Flutter
-/// dependency) so that [SwapScreen] can import this without creating a
-/// circular dependency through [HomeScreen].
-enum AssetId { vavel, btc, eth, sol, tiktok, ton }
+enum AssetId { vaval, eth, sol, tiktok, ton }
 
 extension AssetInfo on AssetId {
   Asset get asset => kAssets.firstWhere((a) => a.id == name);
@@ -17,10 +12,8 @@ extension AssetInfo on AssetId {
 
   Color get color {
     switch (this) {
-      case AssetId.vavel:
-        return const Color(0xFF2979FF);
-      case AssetId.btc:
-        return const Color(0xFFF7931A);
+      case AssetId.vaval:
+        return const Color(0xFFE8A317);
       case AssetId.eth:
         return const Color(0xFF627EEA);
       case AssetId.sol:
@@ -34,12 +27,10 @@ extension AssetInfo on AssetId {
 
   IconData get icon {
     switch (this) {
-      case AssetId.vavel:
-        return Icons.token;
-      case AssetId.btc:
-        return Icons.currency_bitcoin;
+      case AssetId.vaval:
+        return Icons.token_outlined;
       case AssetId.eth:
-        return Icons.diamond_outlined;
+        return Icons.currency_exchange;
       case AssetId.sol:
         return Icons.blur_circular;
       case AssetId.tiktok:

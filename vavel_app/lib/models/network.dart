@@ -5,9 +5,8 @@ enum AppNetwork {
 
   /// Test network — uses free public testnet endpoints, no real funds.
   ///
-  /// • Solana  : Devnet   (api.devnet.solana.com)
-  /// • Ethereum: Sepolia  (rpc.sepolia.org)
-  /// • TON     : Testnet  (testnet.toncenter.com)
-  /// • Bitcoin : Testnet3 (blockstream.info/testnet/api)
+  /// • Solana: Devnet (api.devnet.solana.com)
+  /// • Ethereum: Sepolia (rpc.sepolia.org)
+  /// • TON: Testnet (testnet.toncenter.com)
   testnet,
 }

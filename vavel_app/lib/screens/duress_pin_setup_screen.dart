@@ -81,7 +81,7 @@ class _DuressPinSetupScreenState extends State<DuressPinSetupScreen> {
         return 'Verify it’s you before setting a panic PIN.';
       case _DuressStep.enterDuress:
         return 'If forced to unlock, use this PIN. '
-            'You’ll see a limited wallet; send & dApps stay blocked.';
+            'You’ll see a limited wallet; send and related actions stay blocked.';
       case _DuressStep.confirmDuress:
         return 'Enter the same panic PIN again.';
     }

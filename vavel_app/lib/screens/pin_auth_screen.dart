@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/auth_service.dart';
+import '../providers/locale_provider.dart';
 import '../providers/wallet_provider.dart';
 import '../widgets/sensitive_screen_guard.dart';
 import 'pin_setup_screen.dart' show PinPad;
@@ -74,6 +75,7 @@ class _PinAuthScreenState extends ConsumerState<PinAuthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = ref.watch(stringsProvider);
     return SensitiveScreenGuard(
       child: Scaffold(
       body: SafeArea(
@@ -96,8 +98,8 @@ class _PinAuthScreenState extends ConsumerState<PinAuthScreen> {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      const Text('VAVEL WALLET',
-                          style: TextStyle(
+                      Text(s.appTitle,
+                          style: const TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold)),
                     ],
                   ),

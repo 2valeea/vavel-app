@@ -9,7 +9,7 @@ class AddressBookEntry {
   final String id;
   final String label;
   final String address;
-  /// Matches [AssetId.name] this contact applies to (e.g. eth, btc).
+  /// Matches [AssetId.name] this contact applies to (e.g. sol, ton).
   final String assetKey;
 
   Map<String, dynamic> toJson() => {

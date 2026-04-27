@@ -1,23 +1,52 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:huawei_push/huawei_push.dart' as hms;
 
-import 'push/push_notification_service.dart';
+import 'app_navigator.dart';
+import 'push/hms_background_entry.dart' show huaweiMessagingBackgroundMessageHandler;
+import 'push/push_notification_service.dart' show firebaseMessagingBackgroundHandler;
+import 'push/push_platform.dart' show MobilePushProvider, MobilePushProviderKind;
 import 'providers/wallet_provider.dart';
 import 'providers/locale_provider.dart';
 import 'screens/setup_screen.dart';
 import 'screens/pin_auth_screen.dart';
 import 'screens/home_screen.dart';
-import 'screens/dapp_connect_screen.dart';
+import 'screens/stripe_paywall_screen.dart';
+import 'screens/payment_thank_you_screen.dart';
+import 'stripe/stripe_return_listener.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // FCM background isolate is mobile-only; registering on web is unsupported noise.
+  await dotenv.load(fileName: '.env');
   if (!kIsWeb) {
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    await _registerBackgroundPushHandler();
   }
-  runApp(const ProviderScope(child: VavelApp()));
+  runApp(
+    const ProviderScope(
+      child: VavelApp(),
+    ),
+  );
+}
+
+Future<void> _registerBackgroundPushHandler() async {
+  if (defaultTargetPlatform == TargetPlatform.iOS) {
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    return;
+  }
+  if (defaultTargetPlatform != TargetPlatform.android) {
+    return;
+  }
+  final kind = await MobilePushProvider.getKind();
+  if (kind == MobilePushProviderKind.fcm) {
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  } else if (kind == MobilePushProviderKind.hms) {
+    await hms.Push.registerBackgroundMessageHandler(
+      huaweiMessagingBackgroundMessageHandler,
+    );
+  }
 }
 
 class VavelApp extends ConsumerWidget {
@@ -27,6 +56,7 @@ class VavelApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = ref.watch(localeProvider);
     return MaterialApp(
+      navigatorKey: appNavigatorKey,
       debugShowCheckedModeBanner: false,
       locale: locale,
       supportedLocales: const [
@@ -75,7 +105,9 @@ class VavelApp extends ConsumerWidget {
           ),
         ),
       ),
-      home: const _AppRouter(),
+      home: const StripeReturnListener(
+        child: _AppRouter(),
+      ),
     );
   }
 }
@@ -95,7 +127,8 @@ class _AppRouter extends ConsumerWidget {
         AppRoute.setup => const SetupScreen(),
         AppRoute.pinAuth => const PinAuthScreen(),
         AppRoute.home => const HomeScreen(),
-        AppRoute.dappConnect => const DappConnectScreen(),
+        AppRoute.paywall => const StripePaywallScreen(),
+        AppRoute.paymentThanks => const PaymentThankYouScreen(),
       },
     );
   }

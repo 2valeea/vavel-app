@@ -3,19 +3,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/address_book_entry.dart';
 import '../providers/address_book_provider.dart';
-import '../providers/balance_provider.dart';
-import '../providers/portfolio_provider.dart'
-    show kErc20TransferGasLimit, kEthTransferGasLimit;
 import '../providers/sent_recipients_provider.dart';
 import '../providers/tx_history_provider.dart';
 import '../providers/locale_provider.dart';
 import '../providers/wallet_provider.dart';
+import '../providers/portfolio_provider.dart';
 import '../services/wallet_service.dart' show EthereumSendGasOptions;
-import '../utils/service_fee_consent.dart';
 import '../utils/sensitive_action_auth.dart';
-import '../widgets/service_fee_consent_dialog.dart';
-import '../widgets/ethereum_send_gas_card.dart';
 import '../models/asset_id.dart';
+import '../widgets/ethereum_send_gas_card.dart';
 import '../navigation/premium_page_route.dart';
 import 'address_book_screen.dart';
 
@@ -39,15 +35,20 @@ class _SendScreenState extends ConsumerState<SendScreen> {
   String? _txHash;
   EthereumSendGasOptions? _evmGas;
   String? _evmGasBlockReason;
+  bool _evmGasSeeded = false;
 
-  void _onEvmGasChanged(EthereumSendGasOptions? options, String? blockReason) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      setState(() {
-        _evmGas = options;
-        _evmGasBlockReason = blockReason;
-      });
-    });
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_evmGasSeeded) return;
+    final id = widget.assetId;
+    if (id == AssetId.eth || id == AssetId.vaval) {
+      _evmGasSeeded = true;
+      _evmGas = EthereumSendGasOptions(
+        gasLimit:
+            id == AssetId.eth ? kEthTransferGasLimit : kErc20TransferGasLimit,
+      );
+    }
   }
 
   @override
@@ -128,17 +129,12 @@ class _SendScreenState extends ConsumerState<SendScreen> {
       setState(() {
         _error =
             'Отправка токена tik-tok (pump.fun, Token-2022) в этом приложении ещё не подключена. '
-            'Скопируйте Solana-адрес на экране «Получить» и используйте Phantom, Solflare или другое кошелёк с Token-2022.';
+            'Скопируйте Solana-адрес на экране «Получить» и используйте кошелёк с поддержкой Token-2022.';
       });
       return;
     }
     if (toInput.isEmpty || amountStr.isEmpty) {
       setState(() => _error = 'Please fill in all fields.');
-      return;
-    }
-    if ((widget.assetId == AssetId.eth || widget.assetId == AssetId.vavel) &&
-        (_evmGasBlockReason != null && _evmGasBlockReason!.isNotEmpty)) {
-      setState(() => _error = _evmGasBlockReason);
       return;
     }
     final amount = double.tryParse(amountStr);
@@ -147,19 +143,20 @@ class _SendScreenState extends ConsumerState<SendScreen> {
       return;
     }
 
-    if (!await _ensureServiceFeeConsent()) {
+    if ((widget.assetId == AssetId.eth || widget.assetId == AssetId.vaval) &&
+        (_evmGasBlockReason != null && _evmGasBlockReason!.isNotEmpty)) {
+      setState(() => _error = _evmGasBlockReason);
       return;
     }
 
     var toResolved = toInput;
-    if (widget.assetId == AssetId.eth || widget.assetId == AssetId.vavel) {
+    if (widget.assetId == AssetId.eth || widget.assetId == AssetId.vaval) {
       try {
         toResolved = await ref
             .read(walletServiceProvider)
             .resolveEthereumRecipient(toInput);
       } catch (e) {
-        if (!mounted) return;
-        setState(() => _error = _formatRecipientError(e));
+        setState(() => _error = e.toString());
         return;
       }
     }
@@ -175,8 +172,7 @@ class _SendScreenState extends ConsumerState<SendScreen> {
           title: const Text('New recipient'),
           content: SelectableText(
             'You have not sent ${widget.assetId.ticker} to this address before.\n\n'
-            '$toInput'
-            '${toInput != toResolved ? '\n\nResolves to:\n$toResolved' : ''}\n\n'
+            '$toInput\n\n'
             'Double-check before continuing.',
             style: const TextStyle(height: 1.35),
           ),
@@ -218,49 +214,9 @@ class _SendScreenState extends ConsumerState<SendScreen> {
     }
   }
 
-  String _formatRecipientError(Object e) {
-    final s = e.toString();
-    const p = 'Bad state: ';
-    if (s.startsWith(p)) return s.substring(p.length);
-    return s;
-  }
-
-  /// One-time consent to the fixed 1 VAVEL service fee (stored locally). Does not change send logic.
-  /// "Not now" / closing without accept aborts the send — no transaction is started.
-  Future<bool> _ensureServiceFeeConsent() async {
-    if (await isServiceFeeConsentGranted()) {
-      return true;
-    }
-    if (!mounted) {
-      return false;
-    }
-    final strings = ref.read(stringsProvider);
-    final accepted = await ServiceFeeConsentDialog.show(context, strings);
-    if (accepted == true) {
-      await grantServiceFeeConsent();
-      return true;
-    }
-    return false;
-  }
-
   Future<void> _performSend(String to, double amount, String amountStr) async {
     final service = ref.read(walletServiceProvider);
     String? hash;
-    // --- VAVEL комиссия ---
-    const vavelFee = 1.0;
-    const vavelFeeRecipient = '0xebeaba868348cec64a2712c7d23936af919b09e2';
-    final balances = ref.read(balanceProvider).valueOrNull;
-    final vavelBal = balances?['vavel']?.toDecimal() ?? 0.0;
-    final ethBal = balances?['eth']?.toDecimal() ?? 0.0;
-    if (vavelBal < vavelFee) {
-      setState(() => _error =
-          'Для отправки требуется минимум 1 VAVEL на балансе для комиссии.');
-      return;
-    }
-    // Сначала отправляем комиссию в VAVEL владельцу
-    await service.sendVavel(vavelFeeRecipient, vavelFee, gas: _evmGas);
-
-    // Теперь отправляем основную транзакцию
     switch (widget.assetId) {
       case AssetId.tiktok:
         throw StateError('tik-tok: send is handled before _performSend');
@@ -274,21 +230,8 @@ class _SendScreenState extends ConsumerState<SendScreen> {
       case AssetId.eth:
         hash = await service.sendEthereum(to, amount, gas: _evmGas);
         break;
-      case AssetId.vavel:
-        if (amount > vavelBal - vavelFee) {
-          setState(() => _error =
-              'Недостаточно VAVEL (учитывая комиссию 1 VAVEL). Доступно: ${(vavelBal - vavelFee).toStringAsFixed(4)} VAVEL.');
-          return;
-        }
-        if (ethBal == 0) {
-          setState(
-              () => _error = 'ETH balance required to pay the \$0.03 gas fee.');
-          return;
-        }
-        hash = await service.sendVavel(to, amount, gas: _evmGas);
-        break;
-      case AssetId.btc:
-        hash = await service.sendBitcoin(to, amount);
+      case AssetId.vaval:
+        hash = await service.sendVaval(to, amount, gas: _evmGas);
         break;
     }
     if (mounted) setState(() => _txHash = hash);
@@ -320,225 +263,187 @@ class _SendScreenState extends ConsumerState<SendScreen> {
         child: Padding(
           padding: EdgeInsets.only(bottom: bottomInset),
           child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Информирование о комиссии VAVEL
-              Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.blue.shade200),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.info_outline, color: Colors.blue, size: 22),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        s.sendFeeDisclosure,
-                        style: const TextStyle(
-                            fontSize: 13, color: Colors.black87, height: 1.35),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    s.sendFeeLineService,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF0D47A1),
-                      height: 1.35,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    s.sendFeeLineNetwork,
-                    style: TextStyle(
-                      fontSize: 13,
-                      height: 1.35,
-                      color: Colors.grey.shade800,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    s.sendFeeSmallTransferNote,
-                    style: TextStyle(
-                      fontSize: 12,
-                      height: 1.35,
-                      color: Colors.grey.shade700,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ],
-              ),
-              // From
-              const _SectionLabel('From'),
-              const SizedBox(height: 6),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1A2A3E),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  widget.address.isEmpty ? '—' : widget.address,
-                  style: const TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 12,
-                      color: Colors.grey),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // To
-              Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  const _SectionLabel('Recipient Address'),
-                  TextButton.icon(
-                    onPressed: _pasteRecipientAddress,
-                    icon: const Icon(Icons.content_paste_go_outlined, size: 18),
-                    label: const Text('Paste'),
-                  ),
-                  TextButton.icon(
-                    onPressed: _pickFromAddressBook,
-                    icon: const Icon(Icons.contact_mail_outlined, size: 18),
-                    label: const Text('Contacts'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              _WalletTextField(
-                focusNode: _toFocus,
-                controller: _toController,
-                hint: (id == AssetId.eth || id == AssetId.vavel)
-                    ? '0x… or name.eth'
-                    : 'Enter ${id.ticker} address',
-                showPasteButton: true,
-              ),
-              const SizedBox(height: 20),
-
-              // Amount
-              _SectionLabel('Amount (${id.ticker})'),
-              const SizedBox(height: 6),
-              _WalletTextField(
-                focusNode: _amountFocus,
-                controller: _amountController,
-                hint: '0.00',
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-              ),
-
-              if (id == AssetId.eth || id == AssetId.vavel) ...[
-                const SizedBox(height: 12),
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
                 Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1A2A3E),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: const Color(0xFF2979FF).withValues(alpha: 0.25),
-                    ),
-                  ),
-                  child: EthereumSendGasCard(
-                    defaultGasLimit: id == AssetId.eth
-                        ? kEthTransferGasLimit
-                        : kErc20TransferGasLimit,
-                    onGasChanged: _onEvmGasChanged,
-                  ),
-                ),
-              ],
-              const SizedBox(height: 32),
-
-              if ((id == AssetId.eth || id == AssetId.vavel) &&
-                  _evmGasBlockReason != null &&
-                  _evmGasBlockReason!.isNotEmpty) ...[
-                Text(
-                  _evmGasBlockReason!,
-                  style: TextStyle(
-                    color: Colors.orangeAccent.shade200,
-                    fontSize: 13,
-                  ),
-                ),
-                const SizedBox(height: 12),
-              ],
-
-              if (_error != null) ...[
-                Text(_error!,
-                    style:
-                        const TextStyle(color: Colors.redAccent, fontSize: 13)),
-                const SizedBox(height: 12),
-              ],
-
-              if (_txHash != null && _txHash != 'sent') ...[
-                Container(
+                  margin: const EdgeInsets.only(bottom: 16),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border:
-                        Border.all(color: Colors.green.withValues(alpha: 0.4)),
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.blue.shade200),
                   ),
-                  child: Column(
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Transaction sent!',
-                          style: TextStyle(
-                              color: Colors.green,
-                              fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 4),
-                      SelectableText(
-                        _txHash!,
-                        style: const TextStyle(
-                            color: Colors.grey,
-                            fontFamily: 'monospace',
-                            fontSize: 11),
+                      const Icon(Icons.info_outline, color: Colors.blue, size: 22),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          s.sendFeeDisclosure,
+                          style: const TextStyle(
+                              fontSize: 13, color: Colors.black87, height: 1.35),
+                        ),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 12),
+                if (id == AssetId.eth || id == AssetId.vaval) ...[
+                  EthereumSendGasCard(
+                    defaultGasLimit: id == AssetId.eth
+                        ? kEthTransferGasLimit
+                        : kErc20TransferGasLimit,
+                    onGasChanged: (options, blockReason) {
+                      setState(() {
+                        _evmGas = options;
+                        _evmGasBlockReason = blockReason;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      s.sendFeeLineNetwork,
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.35,
+                        color: Colors.grey.shade800,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      s.sendFeeSmallTransferNote,
+                      style: TextStyle(
+                        fontSize: 12,
+                        height: 1.35,
+                        color: Colors.grey.shade700,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
+                const _SectionLabel('From'),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1A2A3E),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    widget.address.isEmpty ? '—' : widget.address,
+                    style: const TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 12,
+                        color: Colors.grey),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    const _SectionLabel('Recipient Address'),
+                    TextButton.icon(
+                      onPressed: _pasteRecipientAddress,
+                      icon: const Icon(Icons.content_paste_go_outlined, size: 18),
+                      label: const Text('Paste'),
+                    ),
+                    TextButton.icon(
+                      onPressed: _pickFromAddressBook,
+                      icon: const Icon(Icons.contact_mail_outlined, size: 18),
+                      label: const Text('Contacts'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                _WalletTextField(
+                  focusNode: _toFocus,
+                  controller: _toController,
+                  hint: (id == AssetId.eth || id == AssetId.vaval)
+                      ? '0x… or name.eth'
+                      : 'Enter ${id.ticker} address',
+                  showPasteButton: true,
+                ),
+                const SizedBox(height: 20),
+                _SectionLabel('Amount (${id.ticker})'),
+                const SizedBox(height: 6),
+                _WalletTextField(
+                  focusNode: _amountFocus,
+                  controller: _amountController,
+                  hint: '0.00',
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                ),
+                const SizedBox(height: 32),
+                if (_error != null) ...[
+                  Text(_error!,
+                      style: const TextStyle(
+                          color: Colors.redAccent, fontSize: 13)),
+                  const SizedBox(height: 12),
+                ],
+                if (_txHash != null && _txHash != 'sent') ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                          color: Colors.green.withValues(alpha: 0.4)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Transaction sent!',
+                            style: TextStyle(
+                                color: Colors.green,
+                                fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 4),
+                        SelectableText(
+                          _txHash!,
+                          style: const TextStyle(
+                              color: Colors.grey,
+                              fontFamily: 'monospace',
+                              fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                if (_txHash == 'sent') ...[
+                  const Text('TON transaction submitted!',
+                      style: TextStyle(
+                          color: Colors.green, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 12),
+                ],
+                ElevatedButton(
+                  onPressed: _sending ||
+                          ((id == AssetId.eth || id == AssetId.vaval) &&
+                              (_evmGasBlockReason != null &&
+                                  _evmGasBlockReason!.isNotEmpty))
+                      ? null
+                      : _send,
+                  style: ElevatedButton.styleFrom(backgroundColor: id.color),
+                  child: _sending
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white))
+                      : Text('Send ${id.ticker}'),
+                ),
               ],
-
-              if (_txHash == 'sent') ...[
-                const Text('TON transaction submitted!',
-                    style: TextStyle(
-                        color: Colors.green, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 12),
-              ],
-
-              ElevatedButton(
-                onPressed: (_sending ||
-                        ((id == AssetId.eth || id == AssetId.vavel) &&
-                            (_evmGasBlockReason != null &&
-                                _evmGasBlockReason!.isNotEmpty)))
-                    ? null
-                    : _send,
-                style: ElevatedButton.styleFrom(backgroundColor: id.color),
-                child: _sending
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white))
-                    : Text('Send ${id.ticker}'),
-              ),
-            ],
+            ),
           ),
-        ),
         ),
       ),
     );

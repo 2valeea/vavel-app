@@ -15,7 +15,6 @@ import '../providers/network_provider.dart';
 import '../services/wallet_service.dart';
 import '../solana/solana_rpc_client.dart' show SolanaRpcException;
 import '../http/safe_http_client.dart' show NonJsonRpcResponse;
-import 'browser_screen.dart';
 import 'send_screen.dart';
 import 'receive_screen.dart';
 import 'settings_screen.dart';
@@ -68,16 +67,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       final addrs = addressesAsync.valueOrNull;
       if (addrs == null) return '';
       switch (id) {
-        case AssetId.vavel:
-        case AssetId.eth:
-          return addrs.ethereum;
-        case AssetId.btc:
-          return addrs.bitcoin;
         case AssetId.sol:
         case AssetId.tiktok:
           return addrs.solana;
         case AssetId.ton:
           return addrs.ton;
+        case AssetId.eth:
+        case AssetId.vaval:
+          return addrs.ethereum;
       }
     }
 
@@ -104,7 +101,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       for (final id in AssetId.values) {
         final price = id == AssetId.tiktok
             ? (jupTiktok.valueOrNull?.usdPrice ?? 0)
-            : (prices[id.ticker] ?? 0);
+            : (id == AssetId.vaval ? 0.0 : (prices[id.ticker] ?? 0.0));
         final amount = balanceNum(id, balances) ?? 0;
         portfolioTotal += price * amount;
       }
@@ -114,14 +111,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       appBar: AppBar(
         title: Row(
           children: [
-            Image.asset(
-              'assets/images/VAVEL.jpeg',
-              height: 28,
-              errorBuilder: (_, __, ___) => const Icon(
-                Icons.account_balance_wallet,
-                color: Color(0xFF2979FF),
-                size: 28,
-              ),
+            const Icon(
+              Icons.account_balance_wallet,
+              color: Color(0xFF2979FF),
+              size: 28,
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -142,13 +135,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.language_outlined),
-            tooltip: s.browserTitle,
-            onPressed: duress
-                ? () => _needMainPinSnack(s)
-                : () => pushPremium(context, const BrowserScreen()),
-          ),
-          IconButton(
             icon: const Icon(Icons.swap_horiz_outlined),
             tooltip: s.swap,
             onPressed: duress
@@ -164,13 +150,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             icon: const Icon(Icons.lock_outline),
             tooltip: s.lockWallet,
             onPressed: () => ref.read(appRouteProvider.notifier).lockWallet(),
-          ),
-          IconButton(
-            icon: const Icon(Icons.link),
-            tooltip: 'dApp Connect',
-            onPressed: duress
-                ? () => _needMainPinSnack(s)
-                : () => ref.read(appRouteProvider.notifier).goDappConnect(),
           ),
         ],
       ),
@@ -223,7 +202,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               delegate: SliverChildListDelegate([
                 if (showBalanceSkeleton)
                   ...List.generate(
-                    6,
+                    5,
                     (_) => const HomeAssetTileSkeleton(),
                   )
                 else
@@ -426,14 +405,6 @@ class _AssetTile extends StatelessWidget {
         ),
       );
     }
-    if (id == AssetId.vavel) {
-      return ClipOval(
-        child: Image.asset('assets/images/VAVEL.jpeg',
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) =>
-                Icon(id.icon, color: id.color, size: 24)),
-      );
-    }
     return Icon(id.icon, color: id.color, size: 24);
   }
 
@@ -516,9 +487,7 @@ class _AssetTile extends StatelessWidget {
                       : Text(
                           usdValue != null
                               ? usdFmt.format(usdValue)
-                              : (id == AssetId.vavel || id == AssetId.tiktok
-                                  ? '—'
-                                  : s.priceUnavailable),
+                              : (id == AssetId.tiktok ? '—' : s.priceUnavailable),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           softWrap: false,
@@ -654,13 +623,13 @@ class _ChainErrorBanner extends StatelessWidget {
           log(
             '[$chain] auth error — HTTP ${err.statusCode}: '
             '"${err.bodyStart.length > 60 ? err.bodyStart.substring(0, 60) : err.bodyStart}"',
-            name: 'vavel_wallet',
+            name: 'wallet_app',
           );
         }
         final hint = switch (chain) {
-          'eth' || 'ethereum' => '--dart-define=ETH_RPC_URL=https://...',
           'sol' || 'solana' => '--dart-define=SOLANA_RPC_PRIMARY=https://...',
           'ton' => '--dart-define=TONCENTER_API_KEY=YOUR_KEY',
+          'eth' || 'vaval' => '--dart-define=ETH_RPC_URL=https://...',
           _ => 'an authenticated RPC endpoint',
         };
         return 'RPC requires authentication (HTTP ${err.statusCode}). '
@@ -668,7 +637,7 @@ class _ChainErrorBanner extends StatelessWidget {
       }
       if (err.isRateLimited) {
         if (kDebugMode) {
-          log('[$chain] rate-limited (429)', name: 'vavel_wallet');
+          log('[$chain] rate-limited (429)', name: 'wallet_app');
         }
         return 'RPC rate-limited (429). Add an API key or reduce request frequency.';
       }
