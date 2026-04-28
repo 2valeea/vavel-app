@@ -1,14 +1,18 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
+import 'package:flutter/foundation.dart'
+    show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:huawei_push/huawei_push.dart' as hms;
 
 import 'app_navigator.dart';
-import 'push/hms_background_entry.dart' show huaweiMessagingBackgroundMessageHandler;
-import 'push/push_notification_service.dart' show firebaseMessagingBackgroundHandler;
-import 'push/push_platform.dart' show MobilePushProvider, MobilePushProviderKind;
+import 'push/hms_background_entry.dart'
+    show huaweiMessagingBackgroundMessageHandler;
+import 'push/push_notification_service.dart'
+    show firebaseMessagingBackgroundHandler;
+import 'push/push_platform.dart'
+    show MobilePushProvider, MobilePushProviderKind;
 import 'providers/wallet_provider.dart';
 import 'providers/locale_provider.dart';
 import 'screens/setup_screen.dart';
@@ -20,15 +24,34 @@ import 'stripe/stripe_return_listener.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: '.env');
+  await _loadEnvSafe();
   if (!kIsWeb) {
-    await _registerBackgroundPushHandler();
+    await _registerBackgroundPushHandlerSafe();
   }
   runApp(
     const ProviderScope(
       child: VavelApp(),
     ),
   );
+}
+
+Future<void> _loadEnvSafe() async {
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (error, stackTrace) {
+    debugPrint('dotenv load failed, starting with defaults: $error');
+    debugPrintStack(stackTrace: stackTrace);
+  }
+}
+
+Future<void> _registerBackgroundPushHandlerSafe() async {
+  try {
+    await _registerBackgroundPushHandler();
+  } catch (error, stackTrace) {
+    // Push background wiring must never block app startup.
+    debugPrint('background push setup failed: $error');
+    debugPrintStack(stackTrace: stackTrace);
+  }
 }
 
 Future<void> _registerBackgroundPushHandler() async {
