@@ -38,8 +38,16 @@ Future<void> main() async {
 Future<void> _loadEnvSafe() async {
   try {
     await dotenv.load(fileName: '.env');
+    return;
   } catch (error, stackTrace) {
-    debugPrint('dotenv load failed, starting with defaults: $error');
+    debugPrint('dotenv .env missing/unreadable, trying .env.example: $error');
+    debugPrintStack(stackTrace: stackTrace);
+  }
+  try {
+    await dotenv.load(fileName: '.env.example');
+  } catch (error, stackTrace) {
+    debugPrint(
+        'dotenv fallback .env.example failed, starting with defaults: $error');
     debugPrintStack(stackTrace: stackTrace);
   }
 }
